@@ -4,4 +4,4 @@ What's new:
 
 Medical appointment base API
 --------------------------------------------------
-N'oubliez pas lancer mongodb avant le lancement de l'application
+N'oubliez pas de lancer mongodb avant le lancement de l'application
