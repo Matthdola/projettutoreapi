@@ -13,7 +13,7 @@ import java.util.List;
 
 public class Specialites extends Controller {
 
-    public Result list(){
+    public static Result list(){
         List<Specialite> specialites = models.Specialite.findAll();
         ObjectNode result = Json.newObject();
         result.put("uri", "/v1/specialites/");
@@ -22,7 +22,7 @@ public class Specialites extends Controller {
         return ok(result);
     }
 
-    public Result read(String id){
+    public static Result read(String id){
         if(id == null){
             return notFound(String.format("Specialite %s does not exist.", id));
         }
@@ -37,7 +37,7 @@ public class Specialites extends Controller {
     }
 
     @BodyParser.Of(BodyParser.Json.class)
-    public Result create(){
+    public static Result create(){
         JsonNode json = request().body().asJson();
         if(json == null){
             return badRequest("Expecting Json data");
@@ -58,14 +58,14 @@ public class Specialites extends Controller {
     }
 
     @BodyParser.Of(BodyParser.Json.class)
-    public Result update(String id){
+    public static Result update(String id){
         JsonNode json = request().body().asJson();
         if(json == null){
             return badRequest("Expecting Json data");
         } else {
-            String name = json.findPath("name").textValue();
+            String name = json.findPath("nom").textValue();
             if(name == null){
-                return badRequest("Missing parameter [name]");
+                return badRequest("Missing parameter [nom]");
             }else {
                 models.Specialite specialite = Json.fromJson(json, models.Specialite.class);
                 if(!specialite.getId().equals(id)){
@@ -81,7 +81,7 @@ public class Specialites extends Controller {
         }
     }
 
-    public Result delete(String id){
+    public static Result delete(String id){
         if(id == null){
             return notFound(String.format("Specialite %s does not exist.", id));
         }

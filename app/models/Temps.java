@@ -5,9 +5,7 @@ import com.mongodb.DBObject;
 import java.time.LocalDate;
 import java.time.LocalTime;
 
-/**
- * Created by matth on 28/09/2016.
- */
+
 public class Temps extends Document {
     private LocalDate jours;
     private LocalTime heureDebut;

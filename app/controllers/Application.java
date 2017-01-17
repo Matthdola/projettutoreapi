@@ -10,7 +10,7 @@ public class Application extends Controller {
   static Form<Task> taskForm = Form.form(Task.class); 
   
   public static Result index() {
-    return redirect(routes.Application.tasks());
+    return ok("Bienvenue sur l'API medicale");
   }
   
   public static Result tasks() {

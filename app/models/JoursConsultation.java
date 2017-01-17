@@ -5,9 +5,6 @@ import com.mongodb.DBObject;
 import java.time.LocalTime;
 import java.util.ArrayList;
 
-/**
- * Created by matth on 28/09/2016.
- */
 public class JoursConsultation extends Document {
     private ArrayList<JourConsul> jours;
 

@@ -1,7 +1,9 @@
 package controllers;
 
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import models.*;
 import play.libs.Json;
 import play.mvc.BodyParser;
 import play.mvc.Controller;
@@ -9,29 +11,29 @@ import play.mvc.Result;
 
 import java.util.List;
 
-public class Patient extends Controller {
-    
+public class Rendez_vous extends Controller {
+
     public static Result list(){
-        List<models.Patient> patients = models.Patient.findAll();
+        List<models.RendezVous> rendezVouses = models.RendezVous.findAll();
         ObjectNode result = Json.newObject();
         result.put("uri", "/v1/patients/");
         result.put("status", 200);
-        result.put("patients", Json.toJson(patients));
+        result.put("rendez_vous", Json.toJson(rendezVouses));
         return ok(result);
     }
 
     public static Result read(String id){
         if(id == null){
-            return notFound(String.format("Patient %s does not exist.", id));
+            return notFound(String.format("Rendez-vous does not exist."));
         }
         if(id.isEmpty()){
-            return notFound(String.format("Patient %s does not exist.", id));
+            return notFound(String.format("Rendez-vous %s does not exist.", id));
         }
-        models.Patient patient = models.Patient.findById(id);
-        if(patient == null){
-            return notFound(String.format("Patient %s does not exist.", id));
+        models.RendezVous rendezVous = models.RendezVous.findById(id);
+        if(rendezVous == null){
+            return notFound(String.format("Rendez-vous %s does not exist.", id));
         }
-        return  ok(Json.toJson(patient));
+        return  ok(Json.toJson(rendezVous));
     }
 
     @BodyParser.Of(BodyParser.Json.class)
@@ -44,12 +46,12 @@ public class Patient extends Controller {
             if(name == null){
                 return badRequest("Missing parameter [nom]");
             }else {
-                models.Patient patient = Json.fromJson(json, models.Patient.class);
-                models.Patient.save(patient);
+                models.RendezVous rendezVous = Json.fromJson(json, models.RendezVous.class);
+                models.RendezVous.save(rendezVous);
                 ObjectNode result = Json.newObject();
                 result.put("uri", "/v1/patients/");
                 result.put("status", 202);
-                result.put("patient", Json.toJson(patient).toString());
+                result.put("rendez_vous", Json.toJson(rendezVous).toString());
                 return ok(result);
             }
         }
@@ -65,15 +67,15 @@ public class Patient extends Controller {
             if(name == null){
                 return badRequest("Missing parameter [nom]");
             }else {
-                models.Patient patient = Json.fromJson(json, models.Patient.class);
-                if(!patient.getId().equals(id)){
+                models.RendezVous rendezVous = Json.fromJson(json, models.RendezVous.class);
+                if(!rendezVous.getId().equals(id)){
                     return notFound("User not found");
                 }
-                models.Patient.update(patient);
+                models.RendezVous.update(rendezVous);
                 ObjectNode result = Json.newObject();
                 result.put("uri", "/v1/patients/"+id);
                 result.put("status", 200);
-                result.put("patient", Json.toJson(patient).toString());
+                result.put("rendez_vous", Json.toJson(rendezVous).toString());
                 return ok(result);
             }
         }
@@ -81,20 +83,20 @@ public class Patient extends Controller {
 
     public static Result delete(String id){
         if(id == null){
-            return notFound(String.format("Patient %s does not exist.", id));
+            return notFound(String.format("Patient does not exist."));
         }
         if (id.isEmpty()){
             return notFound(String.format("Patient %s does not exist.", id));
         }
-        models.Patient patient = models.Patient.findById(id);
-        if(patient == null){
+        models.RendezVous rendezVous = models.RendezVous.findById(id);
+        if(rendezVous == null){
             return notFound(String.format("Patient %s does not exist.", id));
         }
-        models.Patient.remove(patient);
+        models.RendezVous.remove(rendezVous);
         ObjectNode result = Json.newObject();
         result.put("uri", "/v1/patients/"+id);
         result.put("status", 200);
-        result.put("patient", Json.toJson(patient).toString());
+        result.put("rendez_vous", Json.toJson(rendezVous).toString());
         return ok(result);
     }
 }

@@ -16,22 +16,8 @@ public class Patient extends Utilisateur {
     private List<String> maladieChroniques;
     private List<String> antecedents;
     private List<String> allergies;
-    public static List<Patient> patients;
 
     public static JacksonDBCollection<Patient, String> collection = MongoDB.getCollection("patients", Patient.class, String.class);
-
-    static {
-        patients = new ArrayList<Patient>();
-        patients.add(new Patient("1111111111111", "Paperclips 1",
-                "Paperclips description 1"));
-        patients.add(new Patient("2222222222222", "Paperclips 2",
-                "Paperclips description "));
-        patients.add(new Patient("3333333333333", "Paperclips 3",
-                "Paperclips description 3"));
-        patients.add(new Patient("4444444444444", "Paperclips 4",
-                "Paperclips description 4"));
-        patients.add(new Patient("5555555555555", "Paperclips 5", "Paperclips description 5"));
-    }
 
     public Patient(){
 

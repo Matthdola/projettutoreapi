@@ -1,6 +1,10 @@
 package models;
 
+import com.mongodb.BasicDBObject;
 import com.mongodb.DBObject;
+import net.vz.mongodb.jackson.DBCursor;
+import net.vz.mongodb.jackson.JacksonDBCollection;
+import play.modules.mongodb.jackson.MongoDB;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,6 +21,7 @@ public class Centre extends Document {
     private String logoUrl;
     private ArrayList<Integer> specialites;
 
+    public static JacksonDBCollection<Centre, String> collection = MongoDB.getCollection("centres", Centre.class, String.class);
 
     public static List<Centre> centres;
 
@@ -128,39 +133,75 @@ public class Centre extends Document {
     }
 
     public static List<Centre> findAll() {
-        return new ArrayList<>(centres);
+        return Centre.collection.find().toArray();
+    }
+
+    public static List<Centre> listByVille(String ville) {
+        ArrayList<Centre> centres = new ArrayList<>();
+
+        BasicDBObject query = new BasicDBObject();
+        query.put("ville", ville);
+        DBCursor cursor = collection.find(query);
+        while(cursor.hasNext()) {
+            Centre centre = (Centre)cursor.next();
+            if(centre.ville.equals(ville)){
+                centres.add(centre);
+            }
+        }
+
+        return centres;
+    }
+
+    public static List<Centre> listByType(String type) {
+        ArrayList<Centre> centres = new ArrayList<>();
+        BasicDBObject query = new BasicDBObject();
+        query.put("type", type);
+        DBCursor cursor = collection.find(query);
+        while(cursor.hasNext()) {
+            Centre centre = (Centre)cursor.next();
+            if(centre.type.equals(type)){
+                centres.add(centre);
+            }
+        }
+
+        return centres;
     }
 
     public static Centre findById(String id){
-        for (Centre candidate : centres){
-            if(candidate.getId().equals(id)){
-                return candidate;
-            }
-        }
-        return null;
+        Centre centre = Centre.collection.findOneById(id);
+        return centre;
     }
 
-    public static List<Centre> findByName(String term){
+    public static List<Centre> findByName(String name){
         final  List<Centre> results = new ArrayList<>();
-        for (Centre candidate : centres){
-            if(candidate.getNom().equals(term)){
-                results.add(candidate);
-            }
+
+        BasicDBObject query = new BasicDBObject();
+        query.put("nom", name);
+        DBCursor cursor = collection.find(query);
+        while(cursor.hasNext()) {
+            results.add((Centre) cursor.next());
         }
         return results;
     }
 
     public static boolean remove(Centre centre){
-        return centres.remove(centre);
+        BasicDBObject query = new BasicDBObject();
+        query.put("_id", new org.bson.types.ObjectId(centre.getId()) );
+        try {
+            Centre.collection.remove(query);
+            return true;
+        }catch (Exception e){
+            return false;
+        }
     }
 
     public static void save(Centre centre){
-        centres.add(centre);
+        Centre.collection.save(centre);
     }
 
     public static void update(Centre centre){
-        Predicate<Centre> centrePredicate = p -> p.getId().equals(centre.getId());
-        centres.removeIf(centrePredicate);
-        centres.add(centre);
+        BasicDBObject query = new BasicDBObject();
+        query.put("_id", new org.bson.types.ObjectId(centre.getId()) );
+        collection.update(query, centre.toBson());
     }
 }

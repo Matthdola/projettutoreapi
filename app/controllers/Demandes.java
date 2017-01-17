@@ -3,6 +3,7 @@ package controllers;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.joda.time.DateTime;
 import play.libs.Json;
 import play.mvc.BodyParser;
 import play.mvc.Controller;
@@ -13,7 +14,7 @@ import java.util.List;
 
 public class Demandes extends Controller {
 
-    public Result list(){
+    public static Result list(){
         List<models.Demande> demandes = models.Demande.findAll();
         ObjectNode result = Json.newObject();
         result.put("uri", "/v1/demandes/");
@@ -22,9 +23,9 @@ public class Demandes extends Controller {
         return ok(result);
     }
 
-    public Result read(String id){
+    public static Result read(String id){
         if(id == null){
-            return notFound(String.format("Demande %s does not exist.", id));
+            return notFound(String.format("Demande does not exist."));
         }
         if(id.isEmpty()){
             return notFound(String.format("Demande %s does not exist.", id));
@@ -36,28 +37,28 @@ public class Demandes extends Controller {
         return  ok(Json.toJson(demande));
     }
 
-    public Result readByPatient(String patientId){
+    public static Result readByPatient(String patientId){
         if(patientId == null){
-            return notFound(String.format("Demande does not exist with %s .", patientId));
+            return notFound(String.format("Demande does not exist ."));
         }
         if(patientId.isEmpty()){
             return notFound(String.format("Demande does not exist with %s.", patientId));
         }
-        models.Demande demande = models.Demande.findByIdPatient(patientId);
-        if(demande == null){
+        List<models.Demande> demandes = models.Demande.listByIdPatient(patientId);
+        if(demandes == null){
             return notFound(String.format("Demande does not exist with %s.", patientId));
         }
-        return  ok(Json.toJson(demande));
+        return  ok(Json.toJson(demandes));
     }
 
-    public Result readByEtat(String etat){
+    public static Result readByEtat(String etat){
         if(etat == null){
-            return notFound(String.format("Demande does not exist with  %s .", etat));
+            return notFound(String.format("Demande does not exist."));
         }
         if(etat.isEmpty()){
             return notFound(String.format("Demande does not exist with %s .", etat));
         }
-        List<models.Demande> demandes = models.Demande.findByIdEtat(etat);
+        List<models.Demande> demandes = models.Demande.listByEtat(etat);
         if(demandes == null){
             return notFound(String.format("Demande does not exist with %s.", etat));
         }
@@ -65,7 +66,24 @@ public class Demandes extends Controller {
     }
 
     @BodyParser.Of(BodyParser.Json.class)
-    public Result create(){
+    public static Result readByDate(){
+        JsonNode json = request().body().asJson();
+        if(json == null){
+            return badRequest("Expecting Json data");
+        } else {
+            String date = json.findPath("date").textValue();
+            DateTime dateDemande = DateTime.parse(date);
+            List<models.Demande> demandes = models.Demande.listByDate(dateDemande);
+            if(demandes == null){
+                return notFound(String.format("Demande does not exist with %s.", date));
+            }
+            return  ok(Json.toJson(demandes));
+        }
+
+    }
+
+    @BodyParser.Of(BodyParser.Json.class)
+    public static Result create(){
         JsonNode json = request().body().asJson();
         if(json == null){
             return badRequest("Expecting Json data");
@@ -86,7 +104,7 @@ public class Demandes extends Controller {
     }
 
     @BodyParser.Of(BodyParser.Json.class)
-    public Result update(String id){
+    public static Result update(String id){
         JsonNode json = request().body().asJson();
         if(json == null){
             return badRequest("Expecting Json data");
@@ -109,7 +127,7 @@ public class Demandes extends Controller {
         }
     }
 
-    public Result delete(String id){
+    public static Result delete(String id){
         if(id == null){
             return notFound(String.format("Demande %s does not exist.", id));
         }

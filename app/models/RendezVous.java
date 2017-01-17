@@ -1,22 +1,41 @@
 package models;
 
+import com.mongodb.BasicDBObject;
 import com.mongodb.DBObject;
+import net.vz.mongodb.jackson.DBCursor;
+import net.vz.mongodb.jackson.JacksonDBCollection;
+import play.modules.mongodb.jackson.MongoDB;
+
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.util.ArrayList;
+import java.util.List;
 
 public class RendezVous extends Document {
     private String idDemande;
     private String idMedecin;
-    private String idTemps;
+    private LocalDate jours;
+    private LocalTime heureDebut;
+    private LocalTime heureFin;
     private String idConsultation;
     private String motifs;
+
+    public static JacksonDBCollection<RendezVous, String> collection = MongoDB.getCollection("rendez_vous", RendezVous.class, String.class);
 
     public RendezVous(){
         
     }
 
-    public RendezVous(String idDemande, String idMedecin, String idTemps){
+    public RendezVous(String idDemande, String idMedecin){
         this.idDemande = idDemande;
         this.idMedecin = idMedecin;
-        this.idTemps = idTemps;
+    }
+
+    public RendezVous(String idDemande, String idMedecin, LocalDate jours, LocalTime heureDebut){
+        this.idDemande = idDemande;
+        this.idMedecin = idMedecin;
+        this.jours = jours;
+        this.heureDebut = heureDebut;
     }
 
     public String getIdDemande() {
@@ -35,12 +54,28 @@ public class RendezVous extends Document {
         this.idMedecin = idMedecin;
     }
 
-    public String getIdTemps() {
-        return idTemps;
+    public LocalDate getJours() {
+        return jours;
     }
 
-    public void setIdTemps(String idTemps) {
-        this.idTemps = idTemps;
+    public void setJours(LocalDate jours) {
+        this.jours = jours;
+    }
+
+    public LocalTime getHeureDebut() {
+        return heureDebut;
+    }
+
+    public void setHeureDebut(LocalTime heureDebut) {
+        this.heureDebut = heureDebut;
+    }
+
+    public LocalTime getHeureFin() {
+        return heureFin;
+    }
+
+    public void setHeureFin(LocalTime heureFin) {
+        this.heureFin = heureFin;
     }
 
     public String getIdConsultation() {
@@ -62,5 +97,80 @@ public class RendezVous extends Document {
     @Override
     public DBObject toBson() {
         return null;
+    }
+
+    public static List<RendezVous> findAll() {
+        return RendezVous.collection.find().toArray();
+    }
+    /*
+        public static List<RendezVous> listByCentre(String centre) {
+            ArrayList<Medecin> meds = new ArrayList<>();
+
+            BasicDBObject query = new BasicDBObject();
+            DBCursor cursor = collection.find(query);
+            while(cursor.hasNext()) {
+                Medecin medecin = (Medecin)cursor.next();
+                if(medecin.centres.contains(centre)){
+                    meds.add(medecin);
+                }
+          }
+
+            return meds;
+        }
+        /*
+        public static List<Medecin> listBySpecialite(String specialite) {
+            ArrayList<Medecin> meds = new ArrayList<>();
+            BasicDBObject query = new BasicDBObject();
+            DBCursor cursor = collection.find(query);
+            while(cursor.hasNext()) {
+                Medecin medecin = (Medecin)cursor.next();
+                if(medecin.specialites.contains(specialite)){
+                    meds.add(medecin);
+                }
+            }
+
+            return meds;
+        }
+
+         public static List<RendezVous> findByName(String idMedecin){
+            final  List<RendezVous> results = new ArrayList<>();
+
+            BasicDBObject query = new BasicDBObject();
+            query.put("idMedecin", idMedecin);
+            DBCursor cursor = collection.find(query);
+            while(cursor.hasNext()) {
+                results.add((RendezVous) cursor.next());
+            }
+            return results;
+        }
+
+        */
+
+    public static RendezVous findById(String id){
+        RendezVous rendezVous = RendezVous.collection.findOneById(id);
+        return rendezVous;
+    }
+
+
+
+    public static boolean remove(RendezVous rendezVous){
+        BasicDBObject query = new BasicDBObject();
+        query.put("_id", new org.bson.types.ObjectId(rendezVous.getId()) );
+        try {
+            RendezVous.collection.remove(query);
+            return true;
+        }catch (Exception e){
+            return false;
+        }
+    }
+
+    public static void save(RendezVous rendezVous){
+        RendezVous.collection.save(rendezVous);
+    }
+
+    public static void update(RendezVous rendezVous){
+        BasicDBObject query = new BasicDBObject();
+        query.put("_id", new org.bson.types.ObjectId(rendezVous.getId()) );
+        collection.update(query, rendezVous.toBson());
     }
 }

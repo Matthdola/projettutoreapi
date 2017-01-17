@@ -12,7 +12,7 @@ import java.util.List;
 
 public class Centres extends Controller {
   
-    public Result list(){
+    public static Result list(){
         List<models.Centre> centres = models.Centre.findAll();
         ObjectNode result = Json.newObject();
         result.put("uri", "/v1/centres/");
@@ -21,7 +21,7 @@ public class Centres extends Controller {
         return ok(result);
     }
 
-    public Result read(String id){
+    public static Result read(String id){
         if(id == null){
             return notFound(String.format("Centre %s does not exist.", id));
         }
@@ -36,7 +36,7 @@ public class Centres extends Controller {
     }
 
     @BodyParser.Of(BodyParser.Json.class)
-    public Result create(){
+    public static Result create(){
         JsonNode json = request().body().asJson();
         if(json == null){
             return badRequest("Expecting Json data");
@@ -57,7 +57,7 @@ public class Centres extends Controller {
     }
 
     @BodyParser.Of(BodyParser.Json.class)
-    public Result update(String id){
+    public static Result update(String id){
         JsonNode json = request().body().asJson();
         if(json == null){
             return badRequest("Expecting Json data");
@@ -80,7 +80,7 @@ public class Centres extends Controller {
         }
     }
 
-    public Result delete(String id){
+    public static Result delete(String id){
         if(id == null){
             return notFound(String.format("Centre %s does not exist.", id));
         }
