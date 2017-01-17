@@ -8,7 +8,6 @@ import play.modules.mongodb.jackson.MongoDB;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Predicate;
 
 public class Patient extends Utilisateur {
     private String codeAssurance;
@@ -56,7 +55,6 @@ public class Patient extends Utilisateur {
         return String.format("%s - %s", codeAssurance, idAssureur);
     }
 
-
     public List<String> getMaladieChroniques() {
         return maladieChroniques;
     }
@@ -81,11 +79,9 @@ public class Patient extends Utilisateur {
         this.allergies = allergies;
     }
 
-
     public static List<Patient> findAll() {
         return Patient.collection.find().toArray();
     }
-
 
     public static Patient findById(String id){
         Patient patient = Patient.collection.findOneById(id);

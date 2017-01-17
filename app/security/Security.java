@@ -12,7 +12,6 @@ import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.spec.KeySpec;
 
-
 public class Security {
     public static String generatePBKDF2EncryptedPassword(String password, String salt) {
         try {
