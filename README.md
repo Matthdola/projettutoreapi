@@ -4,12 +4,4 @@ What's new:
 
 Medical appointment base API
 --------------------------------------------------
-
-* Don't forget to start mongodb daemon! It should use the default host (localhost) and the default port.
-
-* Run the application:
-```
-sbt run
-```
-
-Please report if there is any issue with running this tutorial, thanks!
+N'oubliez pas lancer mongodb avant le lancement de l'application
