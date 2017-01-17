@@ -1,5 +1,6 @@
 package controllers;
 
+import action.Cors;
 import akka.actor.ActorSystem;
 import play.mvc.*;
 import java.util.concurrent.Executor;
@@ -22,6 +23,7 @@ import scala.concurrent.ExecutionContextExecutor;
  * An {@link ExecutionContextExecutor} implements both interfaces.
  */
 
+@Cors
 public class AsyncController extends Controller {
 
     private final ActorSystem actorSystem;

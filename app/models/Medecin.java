@@ -20,7 +20,6 @@ public class Medecin extends Utilisateur {
     private ArrayList<String> specialites;
     private ArrayList<String> centres;
     private ArrayList<String> joursConsultation;
-    public static List<Medecin> medecins;
 
     public static JacksonDBCollection<Medecin, String> collection = MongoDB.getCollection("medecins", Medecin.class, String.class);
     

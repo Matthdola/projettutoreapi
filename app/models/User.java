@@ -1,42 +1,110 @@
 package models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.mongodb.BasicDBObject;
+import com.mongodb.DBObject;
+import net.vz.mongodb.jackson.DBCursor;
+import net.vz.mongodb.jackson.JacksonDBCollection;
 import play.data.validation.Constraints;
+import play.modules.mongodb.jackson.MongoDB;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-public class User {
-    @Constraints.Required
-    public String password;
-
-    public String passwordSalt;
-
-    @Constraints.Required
-    public String name;
-
-    public String email;
-
-    public String telephone;
-
+public class User extends Document {
     public byte[] image;
 
-    public static List<User> users;
+    @JsonIgnore
+    public static final String EMAIL = "email";
 
-    static {
-        users = new ArrayList<User>();
-        users.add(new User("Matthias", "matthiasdola@gmail.com ",
-                "matthias"));
-        users.add(new User("Natacha", "natacha@gmail.com",
-                "natacha "));
-        users.add(new User("Odile", "odile@gmail.com",
-                "odile"));
-        users.add(new User("Benoit", "benoit@gmail.com",
-                "benoit"));
-    }
+    @JsonIgnore
+    public static final String NAME = "name";
+
+    @JsonIgnore
+    public static final String PASSWORD = "password";
+
+    @JsonIgnore
+    public static final String PASSWORD_SALT = "salt";
+
+
+    @JsonIgnore
+    public static final String IS_ACTIVATED = "is_activated";
+
+    @JsonProperty(EMAIL)
+    private String email;
+
+    @JsonProperty(NAME)
+    private String name;
+
+    @JsonIgnore
+    private String password;
+
+    @JsonIgnore
+    private String passwordSalt;
+
+    @JsonProperty(IS_ACTIVATED)
+    private boolean isActivated;
+
+    public static JacksonDBCollection<User, String> collection = MongoDB.getCollection("users", User.class, String.class);
+
 
     public User() {
 
+    }
+
+    @Override
+    public DBObject toBson() {
+        return null;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getPasswordSalt() {
+        return passwordSalt;
+    }
+
+    public void setPasswordSalt(String passwordSalt) {
+        this.passwordSalt = passwordSalt;
+    }
+
+    public byte[] getImage() {
+        return image;
+    }
+
+    public void setImage(byte[] image) {
+        this.image = image;
+    }
+
+    public boolean isActivated() {
+        return isActivated;
+    }
+
+    public void setActivated(boolean isActivated) {
+        this.isActivated = isActivated;
     }
 
     public User(String name, String email, String password){
@@ -49,34 +117,65 @@ public class User {
         return String.format("%s - %s", name, name);
     }
 
-    public static List<User> findAll() {
-        return new ArrayList<User>(users);
-    }
 
-    public static User findByEan(String name){
-        for (User candidate : users){
-            if(candidate.name.equals(name)){
-                return candidate;
-            }
+    public static User findByNameAndPassword(String name, String password){
+        BasicDBObject query = new BasicDBObject();
+        query.put("name", name);
+        query.put("password", password);
+        DBCursor cursor = collection.find(query);
+        while(cursor.hasNext()) {
+            return (User) cursor.next();
         }
         return null;
     }
 
-    public static User findByNameAndPassword(String name, String password){
-        for (User candidate : users){
-            if(candidate.name.equals(name)&&candidate.password.equals(password)){
-                return candidate;
-            }
+    public static List<User> findAll() {
+        return User.collection.find().toArray();
+    }
+
+    public static User findById(String id){
+        User user = User.collection.findOneById(id);
+        return user;
+    }
+
+    public static User findByName(String name){
+        BasicDBObject query = new BasicDBObject();
+        query.put("name", name);
+        DBCursor cursor = collection.find(query);
+        while(cursor.hasNext()) {
+            return (User) cursor.next();
+        }
+        return null;
+    }
+
+    public static User findByEmail(String email){
+        BasicDBObject query = new BasicDBObject();
+        query.put("email", email);
+        DBCursor cursor = collection.find(query);
+        while(cursor.hasNext()) {
+            return (User) cursor.next();
         }
         return null;
     }
 
     public static boolean remove(User user){
-        return users.remove(user);
+        BasicDBObject query = new BasicDBObject();
+        query.put("_id", new org.bson.types.ObjectId(user.getId()) );
+        try {
+            User.collection.remove(query);
+            return true;
+        }catch (Exception e){
+            return false;
+        }
     }
 
-    public void save(){
-        users.remove(findByEan(this.name));
-        users.add(this);
+    public static void save(User user){
+        User.collection.insert(user);
+    }
+
+    public static void update(User user){
+        BasicDBObject query = new BasicDBObject();
+        query.put("_id", new org.bson.types.ObjectId(user.getId()) );
+        collection.update(query, user.toBson());
     }
 }

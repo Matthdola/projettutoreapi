@@ -1,5 +1,6 @@
 package controllers;
 
+import action.Cors;
 import play.mvc.*;
 
 import models.Counter;
@@ -11,6 +12,7 @@ import models.Counter;
  * object is injected by the Guice dependency injection system.
  */
 
+@Cors
 public class CountController extends Controller {
 
     private final Counter counter;

@@ -1,5 +1,6 @@
 package controllers;
 
+import action.Cors;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import play.libs.Json;
@@ -9,6 +10,7 @@ import play.mvc.Result;
 
 import java.util.List;
 
+@Cors
 public class Patient extends Controller {
     
     public static Result list(){

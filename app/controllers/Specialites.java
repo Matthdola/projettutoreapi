@@ -1,5 +1,6 @@
 package controllers;
 
+import action.Cors;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
@@ -11,7 +12,27 @@ import models.Specialite;
 
 import java.util.List;
 
+@Cors
 public class Specialites extends Controller {
+
+    public static Result delete(String id){
+        if(id == null){
+            return notFound(String.format("Specialite %s does not exist.", id));
+        }
+        if (id.isEmpty()){
+            return notFound(String.format("Specialite %s does not exist.", id));
+        }
+        models.Specialite specialite = models.Specialite.findById(id);
+        if(specialite == null){
+            return notFound(String.format("Specialite %s does not exist.", id));
+        }
+        models.Specialite.remove(specialite);
+        ObjectNode result = Json.newObject();
+        result.put("uri", "/v1/specialites/"+id);
+        result.put("status", 200);
+        result.put("specialite", Json.toJson(specialite).toString());
+        return ok(result);
+    }
 
     public static Result list(){
         List<Specialite> specialites = models.Specialite.findAll();
@@ -79,24 +100,5 @@ public class Specialites extends Controller {
                 return ok(result);
             }
         }
-    }
-
-    public static Result delete(String id){
-        if(id == null){
-            return notFound(String.format("Specialite %s does not exist.", id));
-        }
-        if (id.isEmpty()){
-            return notFound(String.format("Specialite %s does not exist.", id));
-        }
-        models.Specialite specialite = models.Specialite.findById(id);
-        if(specialite == null){
-            return notFound(String.format("Specialite %s does not exist.", id));
-        }
-        models.Specialite.remove(specialite);
-        ObjectNode result = Json.newObject();
-        result.put("uri", "/v1/specialites/"+id);
-        result.put("status", 200);
-        result.put("specialite", Json.toJson(specialite).toString());
-        return ok(result);
     }
 }

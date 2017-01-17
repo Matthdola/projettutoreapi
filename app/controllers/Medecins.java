@@ -1,4 +1,5 @@
 package controllers;
+import action.Cors;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.joda.time.DateTime;
@@ -9,6 +10,7 @@ import play.mvc.Result;
 
 import java.util.List;
 
+@Cors
 public class Medecins extends Controller {
 
     public static Result list(){

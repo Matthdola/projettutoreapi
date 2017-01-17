@@ -1,13 +1,21 @@
 package models;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.mongodb.BasicDBObject;
-import com.mongodb.DBObject;
+import com.mongodb.*;
+import net.vz.mongodb.jackson.DBCursor;
+import net.vz.mongodb.jackson.JacksonDBCollection;
+import org.bson.types.ObjectId;
 import org.joda.time.DateTime;
+import play.modules.mongodb.jackson.MongoDB;
 
+import java.util.ArrayList;
+import java.util.List;
+
+@JsonIgnoreProperties({"type", "created_at", "updated_at", "deleted_at", "created_by", "updated_by", "deleted_by"})
 public class Token extends Document {
     public enum Type {
         AUTHENTICATION,
@@ -78,6 +86,8 @@ public class Token extends Document {
 
     @JsonIgnore
     private DateTime lastUsedAt;
+
+    public static JacksonDBCollection<Token, String> collection = MongoDB.getCollection("tokens", Token.class, String.class);
 
     public Token() {
     }
@@ -217,4 +227,152 @@ public class Token extends Document {
         this.lastUsedAt = lastUsedAt;
     }
 
+
+    public static List<Token> findAll() {
+        return Token.collection.find().toArray();
+    }
+
+    public static List<Token> listByUserId(String uId) {
+        ArrayList<Token> tokens = new ArrayList<>();
+
+        BasicDBObject query = new BasicDBObject();
+        query.put("user_id", uId);
+        DBCursor cursor = collection.find(query);
+        while(cursor.hasNext()) {
+            Token token = (Token)cursor.next();
+            if(token.userId.equals(uId)){
+                tokens.add(token);
+            }
+        }
+
+        return tokens;
+    }
+
+
+    public static Token findById(String id){
+        Token token = Token.collection.findOneById(id);
+        return token;
+    }
+
+    public static List<Token> findByKey(String key){
+        final  List<Token> results = new ArrayList<>();
+
+        BasicDBObject query = new BasicDBObject();
+        query.put("key", key);
+        DBCursor cursor = collection.find(query);
+        while(cursor.hasNext()) {
+            results.add((Token) cursor.next());
+        }
+        return results;
+    }
+
+    public static boolean remove(Token token){
+        BasicDBObject query = new BasicDBObject();
+        query.put("_id", new org.bson.types.ObjectId(token.getId()) );
+        try {
+            Token.collection.remove(query);
+            return true;
+        }catch (Exception e){
+            return false;
+        }
+    }
+
+    public static void save(Token token){
+        Token.collection.save(token);
+    }
+
+    public static void update(Token token){
+        BasicDBObject query = new BasicDBObject();
+        query.put("_id", new org.bson.types.ObjectId(token.getId()) );
+        collection.update(query, token.toBson());
+    }
+
+    public static Token findByOrigin(String origin) {
+
+        BasicDBObject query = new BasicDBObject();
+        query.put("origin", origin);
+        DBCursor cursor = collection.find(query);
+        try {
+            while(cursor.hasNext()) {
+                Token token = (Token)cursor.next();
+                return token;
+            }
+        }catch (Exception e){
+            return null;
+        }
+        return null;
+    }
+
+    public static Token findByOriginAndUserId(String origin, String userId) {
+        BasicDBObject query = new BasicDBObject();
+        query.put("origin", origin);
+        query.put("user_id", userId);
+        DBCursor cursor = collection.find(query);
+        try {
+            while(cursor.hasNext()) {
+                Token token = (Token)cursor.next();
+                return token;
+            }
+        }catch (Exception e){
+            return null;
+        }
+        return null;
+    }
+
+    public static Token findByUserAgentAndUserId(String userAgent, String userId) {
+        BasicDBObject query = new BasicDBObject();
+        query.put("user_agent", userAgent);
+        query.put("user_id", userId);
+        DBCursor cursor = collection.find(query);
+        try {
+            while(cursor.hasNext()) {
+                Token token = (Token)cursor.next();
+                return token;
+            }
+        }catch (Exception e){
+            return null;
+        }
+        return null;
+    }
+
+
+    public static boolean removeMatchingKey(String key) {
+        BasicDBObject query = new BasicDBObject(Token.KEY, key);
+
+        return remove(query);
+    }
+
+    public static boolean removeMatchingUserId(String userId) {
+        if (!ObjectId.isValid(userId)) {
+            return false;
+        }
+
+        BasicDBObject query = new BasicDBObject(Token.USER_ID, userId);
+
+        return remove(query);
+    }
+
+    private static boolean remove(DBObject query) {
+
+        try  {
+            DBCursor cursor = collection.find(query);
+            if (!cursor.hasNext()) {
+                return true;
+            }
+
+            Token document = (Token) cursor.next();
+
+            try {
+                collection.remove(document, WriteConcern.ACKNOWLEDGED);
+                return true;
+
+            } catch (MongoException e) {
+                return false;
+            }
+
+        } catch (MongoTimeoutException e) {
+            return false;
+
+        }
+    }
 }
