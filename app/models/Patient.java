@@ -1,6 +1,10 @@
 package models;
 
+import com.mongodb.BasicDBObject;
 import com.mongodb.DBObject;
+import net.vz.mongodb.jackson.DBCursor;
+import net.vz.mongodb.jackson.JacksonDBCollection;
+import play.modules.mongodb.jackson.MongoDB;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,6 +18,7 @@ public class Patient extends Utilisateur {
     private List<String> allergies;
     public static List<Patient> patients;
 
+    public static JacksonDBCollection<Patient, String> collection = MongoDB.getCollection("patients", Patient.class, String.class);
 
     static {
         patients = new ArrayList<Patient>();
@@ -65,42 +70,6 @@ public class Patient extends Utilisateur {
         return String.format("%s - %s", codeAssurance, idAssureur);
     }
 
-    public static List<Patient> findAll() {
-        return new ArrayList<>(patients);
-    }
-
-    public static Patient findById(String id){
-        for (Patient candidate : patients){
-            if(candidate.getId().equals(id)){
-                return candidate;
-            }
-        }
-        return null;
-    }
-
-    public static List<Patient> findByName(String term){
-        final  List<Patient> results = new ArrayList<>();
-        for (Patient candidate : patients){
-            if(candidate.codeAssurance.equals(term)){
-                results.add(candidate);
-            }
-        }
-        return results;
-    }
-
-    public static boolean remove(Patient patient){
-        return patients.remove(patient);
-    }
-
-    public static void save(Patient patient){
-        patients.add(patient);
-    }
-
-    public static void update(Patient patient){
-        Predicate<Patient> patientPredicate = p -> p.getId().equals(patient.getId());
-        patients.removeIf(patientPredicate);
-        patients.add(patient);
-    }
 
     public List<String> getMaladieChroniques() {
         return maladieChroniques;
@@ -124,5 +93,49 @@ public class Patient extends Utilisateur {
 
     public void setAllergies(List<String> allergies) {
         this.allergies = allergies;
+    }
+
+
+    public static List<Patient> findAll() {
+        return Patient.collection.find().toArray();
+    }
+
+
+    public static Patient findById(String id){
+        Patient patient = Patient.collection.findOneById(id);
+        return patient;
+    }
+
+    public static List<Patient> findByName(String name){
+        final  List<Patient> results = new ArrayList<>();
+
+        BasicDBObject query = new BasicDBObject();
+        query.put("name", name);
+        DBCursor cursor = collection.find(query);
+        while(cursor.hasNext()) {
+            results.add((Patient) cursor.next());
+        }
+        return results;
+    }
+
+    public static boolean remove(Patient patient){
+        BasicDBObject query = new BasicDBObject();
+        query.put("_id", new org.bson.types.ObjectId(patient.getId()) );
+        try {
+            Patient.collection.remove(query);
+            return true;
+        }catch (Exception e){
+            return false;
+        }
+    }
+
+    public static void save(Patient patient){
+        Patient.collection.save(patient);
+    }
+
+    public static void update(Patient patient){
+        BasicDBObject query = new BasicDBObject();
+        query.put("_id", new org.bson.types.ObjectId(patient.getId()) );
+        collection.update(query, patient.toBson());
     }
 }

@@ -21,3 +21,10 @@ GET     /v1/medecins/:id                        controllers.Medecins.read(id: St
 PUT     /v1/medecins/:id                        controllers.Medecins.update(id: String)
 POST    /v1/medecins/                           controllers.Medecins.create()
 DELETE  /v1/medecins/:id                        controllers.Medecins.delete(id: String)
+
+#Patient
+GET     /v1/patients/                           controllers.Patient.list()
+GET     /v1/patients/:id                        controllers.Patient.read(id: String)
+PUT     /v1/patients/:id                        controllers.Patient.update(id: String)
+POST    /v1/patients/                           controllers.Patient.create()
+DELETE  /v1/patients/:id                        controllers.Patient.delete(id: String)

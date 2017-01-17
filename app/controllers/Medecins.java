@@ -39,7 +39,6 @@ public class Medecins extends Controller {
         return ok(result);
     }
 
-
     public static Result read(String id){
         if(id == null){
             ObjectNode result = Json.newObject();
