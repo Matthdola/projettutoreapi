@@ -4,16 +4,18 @@ import com.mongodb.BasicDBObject;
 import com.mongodb.DBObject;
 import net.vz.mongodb.jackson.DBCursor;
 import net.vz.mongodb.jackson.JacksonDBCollection;
+import org.bson.types.ObjectId;
 import org.joda.time.DateTime;
 import play.modules.mongodb.jackson.MongoDB;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
 public class Demande extends Document {
     private String id;
-    private LocalDateTime dateDemande;
+    private LocalDate dateDemande;
     private String idPatient;
     private String etat;
 
@@ -23,7 +25,7 @@ public class Demande extends Document {
 
     }
 
-    public Demande(LocalDateTime dateDemande, String idPatient, String etat){
+    public Demande(LocalDate dateDemande, String idPatient, String etat){
         this.dateDemande = dateDemande;
         this.idPatient = idPatient;
         this.etat = etat;
@@ -31,14 +33,29 @@ public class Demande extends Document {
 
     @Override
     public DBObject toBson() {
-        return null;
+        BasicDBObject object = new BasicDBObject();
+
+        if (getId() != null && !getId().isEmpty()) {
+            object.append(Document.ID, new ObjectId(getId()));
+        }
+
+        object.append("date", dateDemande)
+                .append("id_patient", idPatient)
+                .append("etat", etat)
+                .append(CREATED_AT, getCreatedAt() == null ? null : getCreatedAt().toString())
+                .append(UPDATED_AT, getUpdatedAt() == null ? null : getUpdatedAt().toString())
+                .append(DELETED_AT, getDeletedAt() == null ? null : getDeletedAt().toString())
+                .append(CREATED_BY, getCreatedBy())
+                .append(UPDATED_BY, getUpdatedBy())
+                .append(DELETED_BY, getDeletedBy());
+        return object;
     }
 
-    public LocalDateTime getDateDemande() {
+    public LocalDate getDateDemande() {
         return dateDemande;
     }
 
-    public void setDateDemande(LocalDateTime dateDemande) {
+    public void setDateDemande(LocalDate dateDemande) {
         this.dateDemande = dateDemande;
     }
 

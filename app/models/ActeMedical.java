@@ -1,7 +1,9 @@
 package models;
 
 
+import com.mongodb.BasicDBObject;
 import com.mongodb.DBObject;
+import org.bson.types.ObjectId;
 
 public class ActeMedical extends Document {
     private String nomActes;
@@ -47,6 +49,24 @@ public class ActeMedical extends Document {
 
     @Override
     public DBObject toBson() {
-        return null;
+        BasicDBObject object = new BasicDBObject();
+
+        if (getId() != null && !getId().isEmpty()) {
+            object.append(Document.ID, new ObjectId(getId()));
+        }
+
+        object.append("nom", nomActes)
+                .append("montant_assure", montantAssure)
+                .append("montant_non_assure", montantNonAssure)
+                .append("montant_espatrie", montantEspatrie)
+                .append(CREATED_AT, getCreatedAt() == null ? null : getCreatedAt().toString())
+                .append(UPDATED_AT, getUpdatedAt() == null ? null : getUpdatedAt().toString())
+                .append(DELETED_AT, getDeletedAt() == null ? null : getDeletedAt().toString())
+                .append(CREATED_BY, getCreatedBy())
+                .append(UPDATED_BY, getUpdatedBy())
+                .append(DELETED_BY, getDeletedBy());
+
+        return object;
+
     }
 }

@@ -1,14 +1,13 @@
 package models;
 
+import com.mongodb.BasicDBObject;
 import com.mongodb.DBObject;
+import org.bson.types.ObjectId;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
 
-/**
- * Created by matth on 28/09/2016.
- */
 public class Consultation extends Document {
     private String id;
     private LocalDate dateConsultation;
@@ -54,6 +53,23 @@ public class Consultation extends Document {
 
     @Override
     public DBObject toBson() {
-        return null;
+        BasicDBObject object = new BasicDBObject();
+
+        if (getId() != null && !getId().isEmpty()) {
+            object.append(Document.ID, new ObjectId(getId()));
+        }
+
+        object.append("date", dateConsultation)
+                .append("heure", heureConsultation)
+                .append("id_rendez_vous", idRendezvous)
+                .append("actes_medicales", acteMedicals)
+                .append(CREATED_AT, getCreatedAt() == null ? null : getCreatedAt().toString())
+                .append(UPDATED_AT, getUpdatedAt() == null ? null : getUpdatedAt().toString())
+                .append(DELETED_AT, getDeletedAt() == null ? null : getDeletedAt().toString())
+                .append(CREATED_BY, getCreatedBy())
+                .append(UPDATED_BY, getUpdatedBy())
+                .append(DELETED_BY, getDeletedBy());
+
+        return object;
     }
 }

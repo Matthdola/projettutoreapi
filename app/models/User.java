@@ -6,6 +6,7 @@ import com.mongodb.BasicDBObject;
 import com.mongodb.DBObject;
 import net.vz.mongodb.jackson.DBCursor;
 import net.vz.mongodb.jackson.JacksonDBCollection;
+import org.bson.types.ObjectId;
 import play.data.validation.Constraints;
 import play.modules.mongodb.jackson.MongoDB;
 
@@ -14,6 +15,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class User extends Document {
+    public enum Type {
+        PATIENT,
+        ASSUREUR,
+        MEDECIN
+    }
+
     public byte[] image;
 
     @JsonIgnore
@@ -28,6 +35,8 @@ public class User extends Document {
     @JsonIgnore
     public static final String PASSWORD_SALT = "salt";
 
+    @JsonIgnore
+    public static final String TYPE = "type";
 
     @JsonIgnore
     public static final String IS_ACTIVATED = "is_activated";
@@ -47,6 +56,9 @@ public class User extends Document {
     @JsonProperty(IS_ACTIVATED)
     private boolean isActivated;
 
+    @JsonProperty(TYPE)
+    private Type type;
+
     public static JacksonDBCollection<User, String> collection = MongoDB.getCollection("users", User.class, String.class);
 
 
@@ -56,7 +68,26 @@ public class User extends Document {
 
     @Override
     public DBObject toBson() {
-        return null;
+        BasicDBObject object = new BasicDBObject();
+
+        if (getId() != null && !getId().isEmpty()) {
+            object.append(Document.ID, new ObjectId(getId()));
+        }
+
+        object.append(EMAIL, email)
+                .append(NAME, name)
+                .append(TYPE, type.toString())
+                .append(PASSWORD, password)
+                .append(PASSWORD_SALT, passwordSalt)
+                .append(IS_ACTIVATED, isActivated)
+                .append(CREATED_AT, getCreatedAt() == null ? null : getCreatedAt().toString())
+                .append(UPDATED_AT, getUpdatedAt() == null ? null : getUpdatedAt().toString())
+                .append(DELETED_AT, getDeletedAt() == null ? null : getDeletedAt().toString())
+                .append(CREATED_BY, getCreatedBy())
+                .append(UPDATED_BY, getUpdatedBy())
+                .append(DELETED_BY, getDeletedBy());
+
+        return object;
     }
 
     public String getPassword() {

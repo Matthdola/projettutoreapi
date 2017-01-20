@@ -3,14 +3,14 @@ package models;
 import play.data.validation.Constraints;
 
 public abstract class Utilisateur extends Document {
-    private String nom;
-    private String prenom;
-    private String email;
-    private String telephone;
-    private String cellulaire;
-    private String imageUrl;
-    private String profession;
-    private String imgUrl;
+    public String nom;
+    public String prenom;
+    public String email;
+    public String telephone;
+    public String cellulaire;
+    public String imageUrl;
+    public String profession;
+    public String imgUrl;
 
     private String username;
 

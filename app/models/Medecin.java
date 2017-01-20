@@ -10,10 +10,10 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.mongodb.BasicDBObject;
 import com.mongodb.DBObject;
 import net.vz.mongodb.jackson.DBCursor;
+import org.bson.types.ObjectId;
 import play.modules.mongodb.jackson.MongoDB;
 import net.vz.mongodb.jackson.JacksonDBCollection;
 import net.vz.mongodb.jackson.Id;
-import net.vz.mongodb.jackson.ObjectId;
 import org.codehaus.jackson.annotate.JsonProperty;
 
 public class Medecin extends Utilisateur {
@@ -73,7 +73,29 @@ public class Medecin extends Utilisateur {
     @JsonIgnore
     @Override
     public DBObject toBson() {
-        return null;
+        BasicDBObject object = new BasicDBObject();
+
+        if (getId() != null && !getId().isEmpty()) {
+            object.append(Document.ID, new ObjectId(getId()));
+        }
+
+        object.append("nom", nom)
+                .append("prenom", prenom)
+                .append("telephone", telephone)
+                .append("prefession", profession)
+                .append("email", email)
+                .append("specialites", specialites)
+                .append("centres", centres)
+                .append("jours_consultation", joursConsultation)
+                .append(CREATED_AT, getCreatedAt() == null ? null : getCreatedAt().toString())
+                .append(UPDATED_AT, getUpdatedAt() == null ? null : getUpdatedAt().toString())
+                .append(DELETED_AT, getDeletedAt() == null ? null : getDeletedAt().toString())
+                .append(CREATED_BY, getCreatedBy())
+                .append(UPDATED_BY, getUpdatedBy())
+                .append(DELETED_BY, getDeletedBy());
+
+        return object;
+
     }
 
     public static Medecin fromBson(DBObject bson){
