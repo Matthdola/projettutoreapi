@@ -21,42 +21,42 @@ GET     /v1/specialites/:specialite/medecins    controllers.Medecins.listBySpeci
 GET     /v1/centres/:centre/medecins            controllers.Medecins.listByCentre(centre: String)
 GET     /v1/medecins/:id                        controllers.Medecins.read(id: String)
 PUT     /v1/medecins/:id                        controllers.Medecins.update(id: String)
-POST    /v1/medecins/                           controllers.Medecins.create()
+POST    /v1/medecins                           controllers.Medecins.create()
 DELETE  /v1/medecins/:id                        controllers.Medecins.delete(id: String)
 
 #Patient
-GET     /v1/patients/                           controllers.Patient.list()
+GET     /v1/patients                           controllers.Patient.list()
 GET     /v1/patients/:id                        controllers.Patient.read(id: String)
 PUT     /v1/patients/:id                        controllers.Patient.update(id: String)
-POST    /v1/patients/                           controllers.Patient.create()
+POST    /v1/patients                           controllers.Patient.create()
 DELETE  /v1/patients/:id                        controllers.Patient.delete(id: String)
 
 #Specialite
-GET     /v1/specialites/                        controllers.Specialites.list
+GET     /v1/specialites                        controllers.Specialites.list
 GET     /v1/specialites/:id                     controllers.Specialites.read(id: String)
 PUT     /v1/specialites/:id                     controllers.Specialites.update(id: String)
 POST    /v1/specialites/                        controllers.Specialites.create()
 DELETE  /v1/specialites/:id                     controllers.Specialites.delete(id: String)
 
 #Centre
-GET     /v1/centres/                            controllers.Centres.list
+GET     /v1/centres                            controllers.Centres.list
 GET     /v1/centres/:id                         controllers.Centres.read(id: String)
 PUT     /v1/centres/:id                         controllers.Centres.update(id: String)
-POST    /v1/centres/                            controllers.Centres.create()
+POST    /v1/centres                            controllers.Centres.create()
 DELETE  /v1/centres/:id                         controllers.Centres.delete(id: String)
 
 #Demandes
-GET     /v1/demandes/                           controllers.Demandes.list
+GET     /v1/demandes                          controllers.Demandes.list
 GET     /v1/demandes/:id                        controllers.Demandes.read(id: String)
 GET     /v1/demandes/:etat/etat                 controllers.Demandes.readByEtat(etat: String)
 GET     /v1/demandes/:idPatient/patient         controllers.Demandes.readByPatient(idPatient: String)
 PUT     /v1/demandes/:id                        controllers.Demandes.update(id: String)
-POST    /v1/demandes/                           controllers.Demandes.create()
+POST    /v1/demandes                          controllers.Demandes.create()
 DELETE  /v1/demandes/:id                        controllers.Demandes.delete(id: String)
 
 #Demandes
-GET     /v1/rendez_vous/                           controllers.Rendez_vous.list
+GET     /v1/rendez_vous                           controllers.Rendez_vous.list
 GET     /v1/rendez_vous/:id                        controllers.Rendez_vous.read(id: String)
 PUT     /v1/rendez_vous/:id                        controllers.Rendez_vous.update(id: String)
-POST    /v1/rendez_vous/                           controllers.Rendez_vous.create()
+POST    /v1/rendez_vous                           controllers.Rendez_vous.create()
 DELETE  /v1/rendez_vous/:id                        controllers.Rendez_vous.delete(id: String)
