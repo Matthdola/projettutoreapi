@@ -18,6 +18,7 @@ public class Demande extends Document {
     private LocalDate dateDemande;
     private String idPatient;
     private String etat;
+    private String motifs;
 
     public static JacksonDBCollection<Demande, String> collection = MongoDB.getCollection("demandes", Demande.class, String.class);
 
@@ -42,6 +43,7 @@ public class Demande extends Document {
         object.append("date", dateDemande)
                 .append("id_patient", idPatient)
                 .append("etat", etat)
+                .append("motifs", motifs)
                 .append(CREATED_AT, getCreatedAt() == null ? null : getCreatedAt().toString())
                 .append(UPDATED_AT, getUpdatedAt() == null ? null : getUpdatedAt().toString())
                 .append(DELETED_AT, getDeletedAt() == null ? null : getDeletedAt().toString())
@@ -73,6 +75,14 @@ public class Demande extends Document {
 
     public void setEtat(String etat) {
         this.etat = etat;
+    }
+
+    public String getMotifs() {
+        return motifs;
+    }
+
+    public void setMotifs(String motifs) {
+        this.motifs = motifs;
     }
 
     public static List<Demande> findAll() {
