@@ -2,14 +2,12 @@ package models;
 
 import com.mongodb.BasicDBObject;
 import com.mongodb.DBObject;
-import net.vz.mongodb.jackson.DBCursor;
 import net.vz.mongodb.jackson.JacksonDBCollection;
 import org.bson.types.ObjectId;
 import play.modules.mongodb.jackson.MongoDB;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
-import java.util.ArrayList;
 import java.util.List;
 
 public class RendezVous extends Document {
@@ -169,8 +167,6 @@ public class RendezVous extends Document {
         RendezVous rendezVous = RendezVous.collection.findOneById(id);
         return rendezVous;
     }
-
-
 
     public static boolean remove(RendezVous rendezVous){
         BasicDBObject query = new BasicDBObject();
