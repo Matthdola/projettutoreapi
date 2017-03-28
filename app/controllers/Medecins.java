@@ -31,7 +31,6 @@ public class Medecins extends Controller {
         return ok(result);
     }
 
-
     public static Result listBySpecialite(String specialite){
         List<models.Medecin> medecins = models.Medecin.listBySpecialite(specialite);
         ObjectNode result = Json.newObject();

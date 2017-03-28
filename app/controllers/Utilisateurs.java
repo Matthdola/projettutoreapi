@@ -564,7 +564,7 @@ public class Utilisateurs extends Controller {
         } catch (Exception e){
             Error error = new Error(Error.UNEXPECTED, "something went wrong when discarding the password reset code.");
             ObjectNode result = Json.newObject();
-            result.put("uri", "/v1/activate/");
+            result.put("uri", "/v1/users/activate");
             result.put("status", 500);
             result.put("error",  Json.toJson(error));
             return internalServerError(result);
@@ -576,7 +576,7 @@ public class Utilisateurs extends Controller {
         if (tokenResult == null) {
             Error error = new Error(Error.UNEXPECTED, "something went wrong when discarding the password reset code.");
             ObjectNode result = Json.newObject();
-            result.put("uri", "/v1/activate/");
+            result.put("uri", "/v1/users/activate");
             result.put("status", 500);
             result.put("error",  Json.toJson(error));
             return internalServerError(result);

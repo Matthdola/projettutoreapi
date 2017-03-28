@@ -21,8 +21,7 @@ public class Token extends Document {
         AUTHENTICATION,
         PASSWORD_RESET,
         ACTIVATION,
-        INVITATION,
-        CHECKOUT
+        INVITATION
     }
 
     @JsonIgnore
