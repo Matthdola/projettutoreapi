@@ -1,30 +1,23 @@
 package controllers;
 
 
-import action.Cors;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.google.common.io.Files;
+import models.Utilisateur;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.validator.routines.EmailValidator;
 import org.joda.time.DateTime;
-import play.data.Form;
 import play.mvc.BodyParser;
 import play.mvc.Controller;
 import play.mvc.Http;
 import play.mvc.Result;
-import models.User;
 import play.libs.Json;
 
 import mongo.Error;
 import security.Security;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.List;
-
-@Cors
-public class Users extends Controller {
+//@Cors
+public class Utilisateurs extends Controller {
     public final static String ACTIVATION_CODE = "activation_code";
     public final static String INVITATION_CODE = "invitation_code";
     public final static String PASSWORD_RESET_CODE = "password_reset_code";
@@ -47,9 +40,10 @@ public class Users extends Controller {
         JsonNode mailNode = json.findPath("email");
         JsonNode nameNode = json.findPath("name");
         JsonNode passwordNode = json.findPath("password");
+        JsonNode typeNode = json.findPath("type");
 
-        if (mailNode.isMissingNode() || nameNode.isMissingNode() || passwordNode.isMissingNode()) {
-            Error error = new Error(Error.MISSING_PARAMETER, "email or name or password is missing in the request body.");
+        if (mailNode.isMissingNode() || nameNode.isMissingNode() || passwordNode.isMissingNode() || typeNode.isMissingNode()) {
+            Error error = new Error(Error.MISSING_PARAMETER, "email or name or password or type is missing in the request body.");
 
             result.put("uri", request().uri());
             result.put("status", 400);
@@ -61,9 +55,20 @@ public class Users extends Controller {
         String mail = mailNode.textValue().trim();
         String name = nameNode.textValue().trim();
         String password = passwordNode.textValue();
+        String type = typeNode.textValue();
 
-        if (mail.isEmpty() || name.isEmpty() || password.isEmpty()) {
-            Error error = new Error(Error.EMPTY_PARAMETER, "email, name and password can not be empty.");
+        if (mail.isEmpty() || name.isEmpty() || password.isEmpty() || type.isEmpty()) {
+            Error error = new Error(Error.EMPTY_PARAMETER, "email, name and password or type can not be empty.");
+
+            result.put("uri", request().uri());
+            result.put("status", 400);
+            result.put("error",  Json.toJson(error));
+
+            return badRequest(result);
+        }
+
+        if (!type.equals("patient") && !type.equals("medecin") && !type.equals("assureur")) {
+            Error error = new Error(Error.EMPTY_PARAMETER, "type should have one of the following values (patient, medecin, assureur).");
 
             result.put("uri", request().uri());
             result.put("status", 400);
@@ -82,7 +87,7 @@ public class Users extends Controller {
             return badRequest(result);
         }
 
-        models.User tempUserResult = User.findByEmail(mail);
+        Utilisateur tempUserResult = Utilisateur.findByEmail(mail);
         if (tempUserResult != null) {
             Error error = new Error(Error.DUPLICATE_KEY, "The given email is already used.");
 
@@ -111,18 +116,27 @@ public class Users extends Controller {
             result.put("status", 500);
             result.put("error",  Json.toJson(error));
         }
+        Utilisateur utilisateur = null;
 
-        models.User user = Json.fromJson(json, models.User.class);
+        if(type.equals("patient")){
+            utilisateur = Json.fromJson(json, models.Patient.class);
+        } else if(type.equals("medecin")){
+            utilisateur = Json.fromJson(json, models.Medecin.class);
+        } else if(type.equals("assureur")){
+            utilisateur = Json.fromJson(json, models.Assureur.class);
+        }
 
+        if(utilisateur != null) {
+            utilisateur.setType(Utilisateur.Type.fromValue(type));
+            utilisateur.setEmail(mail);
+            utilisateur.setName(name);
+            utilisateur.setPasswordSalt(passwordSalt);
+            utilisateur.setPassword(encryptedPassword);
+            utilisateur.setCreatedAt(DateTime.now());
 
-        user.setEmail(mail);
-        user.setName(name);
-        user.setPasswordSalt(passwordSalt);
-        user.setPassword(encryptedPassword);
-        user.setCreatedAt(DateTime.now());
-
-
-        return signupAdmin(user);
+            return signupAdmin(utilisateur);
+        }
+        return null;
     }
 
 
@@ -171,7 +185,7 @@ public class Users extends Controller {
         boolean remember = !rememberNode.isMissingNode() && rememberNode.booleanValue();
 
         if (name.isEmpty() || password.isEmpty()) {
-            Error error = new Error(Error.EMPTY_PARAMETER, "the user name and the password can not be empty.");
+            Error error = new Error(Error.EMPTY_PARAMETER, "the utilisateur name and the password can not be empty.");
             result = Json.newObject();
             result.put("uri", request().uri());
             result.put("status", 400);
@@ -180,17 +194,17 @@ public class Users extends Controller {
             return badRequest(result);
         }
 
-        models.User result1 = models.User.findByName(name);
+        Utilisateur result1 = Utilisateur.findByName(name);
         if (result1 == null) {
 
-            Error error = new Error(Error.EMPTY_PARAMETER, "the user name and the password can not be empty.");
+            Error error = new Error(Error.EMPTY_PARAMETER, "the utilisateur name and the password can not be empty.");
             result = Json.newObject();
             result.put("uri", request().uri());
             result.put("status", 400);
             result.put("error",  Json.toJson(error));
             return internalServerError(result);
             /*
-            User res = User.findByEmail(name);
+            Utilisateur res = Utilisateur.findByEmail(name);
             if (res == null) {
 
 
@@ -212,8 +226,8 @@ public class Users extends Controller {
             */
         }
 
-        models.User user = (models.User) result1;
-        if (!user.isActivated()) {
+        Utilisateur utilisateur = (Utilisateur) result1;
+        if (!utilisateur.isActivated()) {
             Error error = new Error(Error.PERMISSION_DENIED, "the account is either not yet activated, or the account is deactivated");
             result = Json.newObject();
             result.put("uri", request().uri());
@@ -223,7 +237,7 @@ public class Users extends Controller {
             return badRequest(result);
         }
 
-        String encryptedPassword = Security.generatePBKDF2EncryptedPassword(password, user.getPasswordSalt());
+        String encryptedPassword = Security.generatePBKDF2EncryptedPassword(password, utilisateur.getPasswordSalt());
 
         if (encryptedPassword.isEmpty()) {
             Error error = new Error(Error.UNEXPECTED, "something went wrong, try again later.");
@@ -235,7 +249,7 @@ public class Users extends Controller {
             return internalServerError(result);
         }
 
-        if (!encryptedPassword.equals(user.getPassword())) {
+        if (!encryptedPassword.equals(utilisateur.getPassword())) {
             Error error = new Error(Error.INVALID_CREDENTIALS, "invalid credentials.");
             result = Json.newObject();
             result.put("uri", request().uri());
@@ -246,22 +260,22 @@ public class Users extends Controller {
         }
 
 
-        return controllers.Token.generate(user.getId(), request().getHeader("User-Agent"), request().remoteAddress(), remember);
+        return controllers.Token.generate(utilisateur.getId(), request().getHeader("Utilisateur-Agent"), request().remoteAddress(), remember);
     }
 
     public static Result logout() {
 
-        models.User user = (models.User) Http.Context.current().args.get("user");
+        Utilisateur utilisateur = (Utilisateur) Http.Context.current().args.get("utilisateur");
         Http.Request request = Http.Context.current().request();
 
         String token = request.getHeader("X-Auth-Token");
-        //boolean loggedOut = Tokens.removeMatchingUserId(user.getId());
+        //boolean loggedOut = Tokens.removeMatchingUserId(utilisateur.getId());
         boolean loggedOut = models.Token.removeMatchingKey(token);
         if (loggedOut) {
             ObjectNode message = Json.newObject();
             message.put("status", 200)
                     .put("uri", request().uri())
-                    .put("message", user.getName() + " is logged out.");
+                    .put("message", utilisateur.getName() + " is logged out.");
 
             return ok(message);
 
@@ -334,9 +348,9 @@ public class Users extends Controller {
             return notFound(result);
         }
 
-        models.User userResult = models.User.findById(token.getUserId());
+        Utilisateur userResult = Utilisateur.findById(token.getUserId());
         if (userResult == null) {
-            Error error = new Error(Error.NOT_FOUND, "User not Found");
+            Error error = new Error(Error.NOT_FOUND, "Utilisateur not Found");
             result = Json.newObject();
             result.put("uri", request().uri());
             result.put("status", 404);
@@ -344,16 +358,16 @@ public class Users extends Controller {
             return notFound(result);
         }
 
-        models.User user = (models.User) userResult;
+        Utilisateur utilisateur = (Utilisateur) userResult;
 
-        user.setActivated(true);
-        user.setUpdatedAt(DateTime.now());
+        utilisateur.setActivated(true);
+        utilisateur.setUpdatedAt(DateTime.now());
 
         try {
-            models.User.update(user);
-            user = models.User.findByEmail(user.getEmail());
+            Utilisateur.update(utilisateur);
+            utilisateur = Utilisateur.findByEmail(utilisateur.getEmail());
         }catch (Exception e){
-            Error error = new Error(Error.NOT_FOUND, "User not Found");
+            Error error = new Error(Error.NOT_FOUND, "Utilisateur not Found");
             result = Json.newObject();
             result.put("uri", request().uri());
             result.put("status", 404);
@@ -374,11 +388,10 @@ public class Users extends Controller {
         ObjectNode message = Json.newObject();
         message.put("status", 200)
                 .put("uri", request().uri())
-                .put("user", Json.toJson(user));
+                .put("utilisateur", Json.toJson(utilisateur));
 
         return ok(message);
     }
-
 
     public static Result initPasswordReset(String email) {
         JsonNode json = request().body().asJson();
@@ -413,9 +426,9 @@ public class Users extends Controller {
             return badRequest(result);
         }
 
-        models.User res = models.User.findByEmail(email);
+        Utilisateur res = Utilisateur.findByEmail(email);
         if (res == null) {
-            Error error = new Error(Error.NOT_FOUND, "User not Found");
+            Error error = new Error(Error.NOT_FOUND, "Utilisateur not Found");
             result = Json.newObject();
             result.put("uri", request().uri());
             result.put("status", 500);
@@ -423,10 +436,10 @@ public class Users extends Controller {
             return notFound(result);
         }
 
-        models.User user = (models.User) res;
+        Utilisateur utilisateur = (Utilisateur) res;
 
         models.Token token = new models.Token();
-        token.setUserId(user.getId());
+        token.setUserId(utilisateur.getId());
         token.setKey(Security.generateTokenKey(models.Token.DEFAULT_KEY_BYTES_LENGTH));
         token.setType(models.Token.Type.PASSWORD_RESET);
         token.setCreatedAt(DateTime.now());
@@ -499,7 +512,7 @@ public class Users extends Controller {
             return badRequest(result);
         }
 
-        models.User userResult = models.User.findById(token.getUserId());
+        Utilisateur userResult = Utilisateur.findById(token.getUserId());
         if (userResult == null) {
             Error error = new Error(Error.INVALID_TOKEN, "the password reset code is invalid.");
             result = Json.newObject();
@@ -519,7 +532,7 @@ public class Users extends Controller {
         }
         /*
 
-        QueryResult result = changePassword((models.User) userResult, newPassword);
+        QueryResult result = changePassword((models.Utilisateur) userResult, newPassword);
         if (result.isError()) {
             return status(409, (new Response(409, request(), result)).toJson());
         }
@@ -529,9 +542,25 @@ public class Users extends Controller {
     }
 
 
-    private static Result signupAdmin(models.User user) {
+    private static Result createPatient(models.Patient patient){
+        models.Patient.save(patient);
+        return null;
+    }
+
+    private static Result createMedecin(models.Medecin medecin){
+        models.Medecin.save(medecin);
+        return null;
+    }
+
+    private static Result createAssureur(models.Assureur assureur){
+
+        return null;
+    }
+
+
+    private static Result signupAdmin(Utilisateur utilisateur) {
         try {
-            models.User.save(user);
+            Utilisateur.save(utilisateur);
         } catch (Exception e){
             Error error = new Error(Error.UNEXPECTED, "something went wrong when discarding the password reset code.");
             ObjectNode result = Json.newObject();
@@ -541,7 +570,7 @@ public class Users extends Controller {
             return internalServerError(result);
         }
 
-        models.User registered = models.User.findByEmail(user.getEmail());
+        Utilisateur registered = Utilisateur.findByEmail(utilisateur.getEmail());
 
         models.Token tokenResult = generateActivationToken(registered);
         if (tokenResult == null) {
@@ -559,15 +588,15 @@ public class Users extends Controller {
         node.put("status", 201)
                 .put("uri", request().uri())
                 .put(ACTIVATION_CODE, token.getKey())
-                .put("user", Json.toJson(registered));
+                .put("utilisateur", Json.toJson(registered));
 
         return created(node);
     }
 
 
-    private static models.Token generateActivationToken(models.User user) {
+    private static models.Token generateActivationToken(Utilisateur utilisateur) {
         models.Token token = new models.Token();
-        token.setUserId(user.getId());
+        token.setUserId(utilisateur.getId());
         token.setKey(Security.generateTokenKey(models.Token.DEFAULT_KEY_BYTES_LENGTH));
         token.setType(models.Token.Type.ACTIVATION);
         token.setCreatedAt(DateTime.now());

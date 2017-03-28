@@ -12,7 +12,7 @@ import play.mvc.Result;
 import java.util.Timer;
 import java.util.TimerTask;
 
-@Cors
+//@Cors
 public class Token extends Controller {
     public static Result generate(String userId, String userAgent, String origin, boolean remember) {
         models.Token token = createToken(userId, userAgent,origin,remember);

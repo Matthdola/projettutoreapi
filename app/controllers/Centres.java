@@ -70,7 +70,7 @@ public class Centres extends Controller {
             }else {
                 models.Centre centre = Json.fromJson(json, models.Centre.class);
                 if(!centre.getId().equals(id)){
-                    return notFound("User not found");
+                    return notFound("Utilisateur not found");
                 }
                 models.Centre.update(centre);
                 ObjectNode result = Json.newObject();

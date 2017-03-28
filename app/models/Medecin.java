@@ -1,10 +1,7 @@
 package models;
 
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
-import java.util.function.Predicate;
-import java.util.*;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.mongodb.BasicDBObject;
@@ -13,15 +10,13 @@ import net.vz.mongodb.jackson.DBCursor;
 import org.bson.types.ObjectId;
 import play.modules.mongodb.jackson.MongoDB;
 import net.vz.mongodb.jackson.JacksonDBCollection;
-import net.vz.mongodb.jackson.Id;
-import org.codehaus.jackson.annotate.JsonProperty;
 
 public class Medecin extends Utilisateur {
     private ArrayList<String> specialites;
     private ArrayList<String> centres;
     private ArrayList<String> joursConsultation;
 
-    public static JacksonDBCollection<Medecin, String> collection = MongoDB.getCollection("medecins", Medecin.class, String.class);
+    public static JacksonDBCollection<Medecin, String> collection = MongoDB.getCollection("utilisateurs", Medecin.class, String.class);
     
     public Medecin(String id) {
         super();
@@ -73,26 +68,15 @@ public class Medecin extends Utilisateur {
     @JsonIgnore
     @Override
     public DBObject toBson() {
-        BasicDBObject object = new BasicDBObject();
+        BasicDBObject object = (BasicDBObject)super.toBson();
 
         if (getId() != null && !getId().isEmpty()) {
             object.append(Document.ID, new ObjectId(getId()));
         }
 
-        object.append("nom", nom)
-                .append("prenom", prenom)
-                .append("telephone", telephone)
-                .append("prefession", profession)
-                .append("email", email)
-                .append("specialites", specialites)
+        object.append("specialites", specialites)
                 .append("centres", centres)
-                .append("jours_consultation", joursConsultation)
-                .append(CREATED_AT, getCreatedAt() == null ? null : getCreatedAt().toString())
-                .append(UPDATED_AT, getUpdatedAt() == null ? null : getUpdatedAt().toString())
-                .append(DELETED_AT, getDeletedAt() == null ? null : getDeletedAt().toString())
-                .append(CREATED_BY, getCreatedBy())
-                .append(UPDATED_BY, getUpdatedBy())
-                .append(DELETED_BY, getDeletedBy());
+                .append("jours_consultation", joursConsultation);
 
         return object;
 
@@ -113,9 +97,11 @@ public class Medecin extends Utilisateur {
         this.centres = centres;
     }
 
+    /*
     public static List<Medecin> findAll() {
         return Medecin.collection.find().toArray();
     }
+    */
 
     public static List<Medecin> listByCentre(String centre) {
         ArrayList<Medecin> meds = new ArrayList<>();
@@ -151,6 +137,7 @@ public class Medecin extends Utilisateur {
         return medecin;
     }
 
+    /*
     public static List<Medecin> findByName(String name){
         final  List<Medecin> results = new ArrayList<>();
 
@@ -162,6 +149,7 @@ public class Medecin extends Utilisateur {
         }
         return results;
     }
+    */
 
     public static boolean remove(Medecin medecin){
         BasicDBObject query = new BasicDBObject();

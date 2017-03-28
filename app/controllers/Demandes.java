@@ -13,7 +13,7 @@ import models.*;
 
 import java.util.List;
 
-@Cors
+//@Cors
 public class Demandes extends Controller {
 
     public static Result list(){
@@ -117,7 +117,7 @@ public class Demandes extends Controller {
             }else {
                 models.Demande demande = Json.fromJson(json, models.Demande.class);
                 if(!demande.getId().equals(id)){
-                    return notFound("User not found");
+                    return notFound("Utilisateur not found");
                 }
                 models.Demande.update(demande);
                 ObjectNode result = Json.newObject();

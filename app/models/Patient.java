@@ -2,12 +2,10 @@ package models;
 
 import com.mongodb.BasicDBObject;
 import com.mongodb.DBObject;
-import net.vz.mongodb.jackson.DBCursor;
 import net.vz.mongodb.jackson.JacksonDBCollection;
 import org.bson.types.ObjectId;
 import play.modules.mongodb.jackson.MongoDB;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class Patient extends Utilisateur {
@@ -17,7 +15,7 @@ public class Patient extends Utilisateur {
     private List<String> antecedents;
     private List<String> allergies;
 
-    public static JacksonDBCollection<Patient, String> collection = MongoDB.getCollection("patients", Patient.class, String.class);
+    public static JacksonDBCollection<Patient, String> collection = MongoDB.getCollection("utilisateurs", Patient.class, String.class);
 
     public Patient(){
 
@@ -49,25 +47,7 @@ public class Patient extends Utilisateur {
 
     @Override
     public DBObject toBson() {
-        BasicDBObject object = new BasicDBObject();
-
-        if (getId() != null && !getId().isEmpty()) {
-            object.append(Document.ID, new ObjectId(getId()));
-        }
-
-        object.append("nom", nom)
-                .append("prenom", prenom)
-                .append("email", email)
-                .append("telephone", telephone)
-                .append("profession", profession)
-                .append(CREATED_AT, getCreatedAt() == null ? null : getCreatedAt().toString())
-                .append(UPDATED_AT, getUpdatedAt() == null ? null : getUpdatedAt().toString())
-                .append(DELETED_AT, getDeletedAt() == null ? null : getDeletedAt().toString())
-                .append(CREATED_BY, getCreatedBy())
-                .append(UPDATED_BY, getUpdatedBy())
-                .append(DELETED_BY, getDeletedBy());
-
-        return object;
+        return super.toBson();
     }
 
     public String toString(){
@@ -98,15 +78,17 @@ public class Patient extends Utilisateur {
         this.allergies = allergies;
     }
 
+    /*
     public static List<Patient> findAll() {
         return Patient.collection.find().toArray();
     }
-
+    */
     public static Patient findById(String id){
         Patient patient = Patient.collection.findOneById(id);
         return patient;
     }
 
+    /*
     public static List<Patient> findByName(String name){
         final  List<Patient> results = new ArrayList<>();
 
@@ -118,7 +100,7 @@ public class Patient extends Utilisateur {
         }
         return results;
     }
-
+    */
     public static boolean remove(Patient patient){
         BasicDBObject query = new BasicDBObject();
         query.put("_id", new org.bson.types.ObjectId(patient.getId()) );

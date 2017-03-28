@@ -12,7 +12,7 @@ import models.Specialite;
 
 import java.util.List;
 
-@Cors
+//@Cors
 public class Specialites extends Controller {
 
     public static Result delete(String id){
@@ -90,7 +90,7 @@ public class Specialites extends Controller {
             }else {
                 models.Specialite specialite = Json.fromJson(json, models.Specialite.class);
                 if(!specialite.getId().equals(id)){
-                    return notFound("User not found");
+                    return notFound("Utilisateur not found");
                 }
                 models.Specialite.update(specialite);
                 ObjectNode result = Json.newObject();

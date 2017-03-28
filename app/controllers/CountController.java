@@ -12,7 +12,7 @@ import models.Counter;
  * object is injected by the Guice dependency injection system.
  */
 
-@Cors
+//@Cors
 public class CountController extends Controller {
 
     private final Counter counter;

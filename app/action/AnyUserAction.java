@@ -1,6 +1,7 @@
 package action;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import models.Utilisateur;
 import play.libs.Json;
 import play.mvc.Action;
 
@@ -57,13 +58,13 @@ public class AnyUserAction extends Action.Simple {
                     return F.Promise.promise(() -> unauthorized(Json.toJson(res)));
                 }
 
-                Object userQueryResult = models.User.findById(token.getUserId());
+                Object userQueryResult = Utilisateur.findById(token.getUserId());
 
                 if (userQueryResult != null) {
 
-                    models.User user = (models.User) userQueryResult;
+                    Utilisateur utilisateur = (Utilisateur) userQueryResult;
 
-                    context.args.put("user", user);
+                    context.args.put("utilisateur", utilisateur);
 
                     return delegate.call(context);
 

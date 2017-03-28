@@ -10,11 +10,11 @@ import play.mvc.Result;
 
 import java.util.List;
 
-@Cors
+//@Cors
 public class Medecins extends Controller {
 
     public static Result list(){
-        List<models.Medecin> medecins = models.Medecin.findAll();
+        List<models.Utilisateur> medecins = models.Utilisateur.findAllMedecin();
         ObjectNode result = Json.newObject();
         result.put("uri", "/v1/medecins/");
         result.put("status", 200);
@@ -104,7 +104,7 @@ public class Medecins extends Controller {
             }else {
                 models.Medecin medecin = Json.fromJson(json, models.Medecin.class);
                 if(!medecin.getId().equals(id)){
-                    return notFound("User not found");
+                    return notFound("Utilisateur not found");
                 }
                 models.Medecin.update(medecin);
                 ObjectNode result = Json.newObject();

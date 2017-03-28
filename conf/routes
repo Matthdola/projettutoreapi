@@ -9,11 +9,11 @@ GET     /assets/*file               controllers.Assets.at(path="/public", file)
 OPTIONS /*path                                      controllers.Application.preflight(path)
 
 # Users resource.
-POST    /v1/users/signup                            controllers.Users.signup()
-POST    /v1/users/login                             controllers.Users.login()
-POST    /v1/users/logout                            controllers.Users.logout()
+POST    /v1/users/signup                            controllers.Utilisateurs.signup()
+POST    /v1/users/login                             controllers.Utilisateurs.login()
+POST    /v1/users/logout                            controllers.Utilisateurs.logout()
 
-PUT     /v1/users/activate                          controllers.Users.activate()
+PUT     /v1/users/activate                          controllers.Utilisateurs.activate()
 
 #Medecin
 GET     /v1/medecins                            controllers.Medecins.list()

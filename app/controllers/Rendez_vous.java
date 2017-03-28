@@ -12,7 +12,7 @@ import play.mvc.Result;
 
 import java.util.List;
 
-@Cors
+//@Cors
 public class Rendez_vous extends Controller {
 
     public static Result list(){
@@ -71,7 +71,7 @@ public class Rendez_vous extends Controller {
             }else {
                 models.RendezVous rendezVous = Json.fromJson(json, models.RendezVous.class);
                 if(!rendezVous.getId().equals(id)){
-                    return notFound("User not found");
+                    return notFound("Utilisateur not found");
                 }
                 models.RendezVous.update(rendezVous);
                 ObjectNode result = Json.newObject();
