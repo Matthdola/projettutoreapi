@@ -45,7 +45,7 @@ public class Users extends Controller {
         }
 
         JsonNode mailNode = json.findPath("email");
-        JsonNode nameNode = json.findPath("username");
+        JsonNode nameNode = json.findPath("name");
         JsonNode passwordNode = json.findPath("password");
 
         if (mailNode.isMissingNode() || nameNode.isMissingNode() || passwordNode.isMissingNode()) {
@@ -83,7 +83,7 @@ public class Users extends Controller {
         }
 
         models.User tempUserResult = User.findByEmail(mail);
-        if (tempUserResult == null) {
+        if (tempUserResult != null) {
             Error error = new Error(Error.DUPLICATE_KEY, "The given email is already used.");
 
             result.put("uri", request().uri());
@@ -540,20 +540,6 @@ public class Users extends Controller {
             result.put("error",  Json.toJson(error));
             return internalServerError(result);
         }
-        /*
-        if (result.isError()) {
-            Error error = (Error) result;
-
-            switch (error.getCode()) {
-                case Error.DUPLICATE_KEY:
-                    return status(409, (new Response(409, request(), result)).toJson());
-                case Error.DATABASE_ACCESS_TIMEOUT:
-                    return status(408, (new Response(408, request(), result)).toJson());
-                default:
-                    return internalServerError((new Response(500, request(), result)).toJson());
-            }
-        }
-        */
 
         models.User registered = models.User.findByEmail(user.getEmail());
 
