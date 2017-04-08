@@ -79,8 +79,8 @@ public class Patient extends Utilisateur {
     }
 
     /*
-    public static List<Patient> findAll() {
-        return Patient.collection.find().toArray();
+    public static List<Patients> findAll() {
+        return Patients.collection.find().toArray();
     }
     */
     public static Patient findById(String id){
@@ -89,14 +89,14 @@ public class Patient extends Utilisateur {
     }
 
     /*
-    public static List<Patient> findByName(String name){
-        final  List<Patient> results = new ArrayList<>();
+    public static List<Patients> findByName(String name){
+        final  List<Patients> results = new ArrayList<>();
 
         BasicDBObject query = new BasicDBObject();
         query.put("name", name);
         DBCursor cursor = collection.find(query);
         while(cursor.hasNext()) {
-            results.add((Patient) cursor.next());
+            results.add((Patients) cursor.next());
         }
         return results;
     }

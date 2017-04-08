@@ -12,7 +12,7 @@ import play.mvc.Result;
 import java.util.Timer;
 import java.util.TimerTask;
 
-//@Cors
+@Cors
 public class Token extends Controller {
     public static Result generate(String userId, String userAgent, String origin, boolean remember) {
         models.Token token = createToken(userId, userAgent,origin,remember);
@@ -24,9 +24,9 @@ public class Token extends Controller {
             return internalServerError(result);
         }
 
-        result.put("uri", "/v1/patients/");
+        result.put("uri", "/v1/users/login");
         result.put("status", 202);
-        result.put("token", Json.toJson(token).toString());
+        result.put("token", Json.toJson(token));
         return ok(result);
     }
 

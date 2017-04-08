@@ -10,8 +10,8 @@ import play.mvc.Result;
 
 import java.util.List;
 
-//@Cors
-public class Patient extends Controller {
+@Cors
+public class Patients extends Controller {
     
     public static Result list(){
         List<models.Utilisateur> patients = models.Utilisateur.findAllPatient();
@@ -24,14 +24,14 @@ public class Patient extends Controller {
 
     public static Result read(String id){
         if(id == null){
-            return notFound(String.format("Patient %s does not exist.", id));
+            return notFound(String.format("Patients %s does not exist.", id));
         }
         if(id.isEmpty()){
-            return notFound(String.format("Patient %s does not exist.", id));
+            return notFound(String.format("Patients %s does not exist.", id));
         }
         models.Patient patient = models.Patient.findById(id);
         if(patient == null){
-            return notFound(String.format("Patient %s does not exist.", id));
+            return notFound(String.format("Patients %s does not exist.", id));
         }
         return  ok(Json.toJson(patient));
     }
@@ -83,14 +83,14 @@ public class Patient extends Controller {
 
     public static Result delete(String id){
         if(id == null){
-            return notFound(String.format("Patient %s does not exist.", id));
+            return notFound(String.format("Patients %s does not exist.", id));
         }
         if (id.isEmpty()){
-            return notFound(String.format("Patient %s does not exist.", id));
+            return notFound(String.format("Patients %s does not exist.", id));
         }
         models.Patient patient = models.Patient.findById(id);
         if(patient == null){
-            return notFound(String.format("Patient %s does not exist.", id));
+            return notFound(String.format("Patients %s does not exist.", id));
         }
         models.Patient.remove(patient);
         ObjectNode result = Json.newObject();

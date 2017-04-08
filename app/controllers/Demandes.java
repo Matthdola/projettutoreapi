@@ -13,7 +13,7 @@ import models.*;
 
 import java.util.List;
 
-//@Cors
+@Cors
 public class Demandes extends Controller {
 
     public static Result list(){
@@ -90,16 +90,18 @@ public class Demandes extends Controller {
         if(json == null){
             return badRequest("Expecting Json data");
         } else {
-            String name = json.findPath("name").textValue();
-            if(name == null){
-                return badRequest("Missing parameter [name]");
+            String idPatient = json.findPath("id_patient").textValue();
+            if(idPatient == null){
+                return badRequest("Missing parameter [id_patient]");
             }else {
                 models.Demande demande = Json.fromJson(json, models.Demande.class);
+                demande.setDateDemande(DateTime.now());
+                demande.setCreatedAt(DateTime.now());
                 models.Demande.save(demande);
                 ObjectNode result = Json.newObject();
                 result.put("uri", "/v1/demandes/");
                 result.put("status", 202);
-                result.put("demande", Json.toJson(demande).toString());
+                result.put("demande", Json.toJson(demande));
                 return ok(result);
             }
         }
@@ -123,7 +125,7 @@ public class Demandes extends Controller {
                 ObjectNode result = Json.newObject();
                 result.put("uri", "/v1/demandes/"+id);
                 result.put("status", 200);
-                result.put("demande", Json.toJson(demande).toString());
+                result.put("demande", Json.toJson(demande));
                 return ok(result);
             }
         }
@@ -144,7 +146,7 @@ public class Demandes extends Controller {
         ObjectNode result = Json.newObject();
         result.put("uri", "/v1/demandes/"+id);
         result.put("status", 200);
-        result.put("demande", Json.toJson(demande).toString());
+        result.put("demande", Json.toJson(demande));
         return ok(result);
     }
 }

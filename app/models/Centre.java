@@ -25,7 +25,7 @@ public class Centre extends Document {
     public static JacksonDBCollection<Centre, String> collection = MongoDB.getCollection("centres", Centre.class, String.class);
 
     public Centre(){
-
+        specialites = new ArrayList<>();
     }
 
     public Centre(String nom){
@@ -35,6 +35,7 @@ public class Centre extends Document {
     public Centre(String nom, String telephone){
         this.nom = nom;
         this.telephone = telephone;
+        specialites = new ArrayList<>();
     }
 
     public Centre fromBson(Object bson){

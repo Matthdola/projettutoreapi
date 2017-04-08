@@ -4,6 +4,7 @@ import action.Cors;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+import org.joda.time.DateTime;
 import play.libs.Json;
 import play.mvc.BodyParser;
 import play.mvc.Controller;
@@ -12,7 +13,7 @@ import models.Specialite;
 
 import java.util.List;
 
-//@Cors
+@Cors
 public class Specialites extends Controller {
 
     public static Result delete(String id){
@@ -30,7 +31,7 @@ public class Specialites extends Controller {
         ObjectNode result = Json.newObject();
         result.put("uri", "/v1/specialites/"+id);
         result.put("status", 200);
-        result.put("specialite", Json.toJson(specialite).toString());
+        result.put("specialite", Json.toJson(specialite));
         return ok(result);
     }
 
@@ -68,11 +69,12 @@ public class Specialites extends Controller {
                 return badRequest("Missing parameter [name]");
             }else {
                 models.Specialite specialite = Json.fromJson(json, models.Specialite.class);
+                specialite.setCreatedAt(DateTime.now());
                 models.Specialite.save(specialite);
                 ObjectNode result = Json.newObject();
                 result.put("uri", "/v1/specialites/");
                 result.put("status", 202);
-                result.put("specialite", Json.toJson(specialite).toString());
+                result.put("specialite", Json.toJson(specialite));
                 return ok(result);
             }
         }
@@ -84,9 +86,9 @@ public class Specialites extends Controller {
         if(json == null){
             return badRequest("Expecting Json data");
         } else {
-            String name = json.findPath("nom").textValue();
+            String name = json.findPath("name").textValue();
             if(name == null){
-                return badRequest("Missing parameter [nom]");
+                return badRequest("Missing parameter [name]");
             }else {
                 models.Specialite specialite = Json.fromJson(json, models.Specialite.class);
                 if(!specialite.getId().equals(id)){
@@ -96,7 +98,7 @@ public class Specialites extends Controller {
                 ObjectNode result = Json.newObject();
                 result.put("uri", "/v1/specialites/"+id);
                 result.put("status", 200);
-                result.put("specialite", Json.toJson(specialite).toString());
+                result.put("specialite", Json.toJson(specialite));
                 return ok(result);
             }
         }

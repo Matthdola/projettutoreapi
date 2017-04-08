@@ -11,12 +11,15 @@ import org.bson.types.ObjectId;
 import play.modules.mongodb.jackson.MongoDB;
 import net.vz.mongodb.jackson.JacksonDBCollection;
 
+import javax.rmi.CORBA.Util;
+
 public class Medecin extends Utilisateur {
     private ArrayList<String> specialites;
+    private String centrePrincipal;
     private ArrayList<String> centres;
     private ArrayList<String> joursConsultation;
 
-    public static JacksonDBCollection<Medecin, String> collection = MongoDB.getCollection("utilisateurs", Medecin.class, String.class);
+    public static JacksonDBCollection<Utilisateur, String> collection = MongoDB.getCollection("utilisateurs", Utilisateur.class, String.class);
     
     public Medecin(String id) {
         super();
@@ -61,6 +64,14 @@ public class Medecin extends Utilisateur {
         return joursConsultation;
     }
 
+    public String getCentrePrincipal() {
+        return centrePrincipal;
+    }
+
+    public void setCentrePrincipal(String centrePrincipal) {
+        this.centrePrincipal = centrePrincipal;
+    }
+
     public void setJoursConsultation(ArrayList<String> joursConsultation) {
         this.joursConsultation = joursConsultation;
     }
@@ -75,6 +86,7 @@ public class Medecin extends Utilisateur {
         }
 
         object.append("specialites", specialites)
+                .append("centre_principal", centrePrincipal)
                 .append("centres", centres)
                 .append("jours_consultation", joursConsultation);
 
@@ -97,11 +109,20 @@ public class Medecin extends Utilisateur {
         this.centres = centres;
     }
 
-    /*
-    public static List<Medecin> findAll() {
-        return Medecin.collection.find().toArray();
+
+    public static List<Utilisateur> findAll() {
+        ArrayList<Utilisateur> meds = new ArrayList<>();
+        BasicDBObject query = new BasicDBObject();
+        query.put("type", "MEDECIN");
+
+        DBCursor cursor = collection.find(query);
+        while(cursor.hasNext()) {
+            meds.add((Utilisateur)cursor.next());
+        }
+
+        return meds;
     }
-    */
+
 
     public static List<Medecin> listByCentre(String centre) {
         ArrayList<Medecin> meds = new ArrayList<>();
@@ -132,8 +153,8 @@ public class Medecin extends Utilisateur {
         return meds;
     }
 
-    public static Medecin findById(String id){
-        Medecin medecin = Medecin.collection.findOneById(id);
+    public static Utilisateur findById(String id){
+        Utilisateur medecin = Medecin.collection.findOneById(id);
         return medecin;
     }
 

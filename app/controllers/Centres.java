@@ -19,7 +19,7 @@ public class Centres extends Controller {
         ObjectNode result = Json.newObject();
         result.put("uri", "/v1/centres/");
         result.put("status", 200);
-        result.put("centre", Json.toJson(centres));
+        result.put("centres", Json.toJson(centres));
         return ok(result);
     }
 
@@ -43,17 +43,17 @@ public class Centres extends Controller {
         if(json == null){
             return badRequest("Expecting Json data");
         } else {
-            String name = json.findPath("name").textValue();
+            String name = json.findPath("nom").textValue();
             if(name == null){
-                return badRequest("Missing parameter [name]");
+                return badRequest("Missing parameter [nom]");
             }else {
                 models.Centre centre = Json.fromJson(json, models.Centre.class);
                 models.Centre.save(centre);
                 ObjectNode result = Json.newObject();
                 result.put("uri", "/v1/centres/");
                 result.put("status", 202);
-                result.put("centre", Json.toJson(centre).toString());
-                return ok(result);
+                result.put("centre", Json.toJson(centre));
+                return created(result);
             }
         }
     }
@@ -76,7 +76,7 @@ public class Centres extends Controller {
                 ObjectNode result = Json.newObject();
                 result.put("uri", "/v1/centres/"+id);
                 result.put("status", 200);
-                result.put("centre", Json.toJson(centre).toString());
+                result.put("centre", Json.toJson(centre));
                 return ok(result);
             }
         }
@@ -97,7 +97,7 @@ public class Centres extends Controller {
         ObjectNode result = Json.newObject();
         result.put("uri", "/v1/centres/"+id);
         result.put("status", 200);
-        result.put("centre", Json.toJson(centre).toString());
+        result.put("centre", Json.toJson(centre));
         return ok(result);
     }
 }

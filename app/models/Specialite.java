@@ -13,7 +13,7 @@ import java.util.function.Predicate;
 
 public class Specialite extends Document {
     private String id;
-    private String nom;
+    private String name;
     private String domaine;
 
     public static JacksonDBCollection<Specialite, String> collection = MongoDB.getCollection("specialites", Specialite.class, String.class);
@@ -23,16 +23,16 @@ public class Specialite extends Document {
 
     }
 
-    public Specialite(String nom){
-        this.nom = nom;
+    public Specialite(String name){
+        this.name = name;
     }
 
-    public String getNom() {
-        return nom;
+    public String getName() {
+        return name;
     }
 
-    public void setNom(String nom) {
-        this.nom = nom;
+    public void setName(String name) {
+        this.name = name;
     }
 
     public String getDomaine() {
@@ -52,7 +52,7 @@ public class Specialite extends Document {
             object.append(Document.ID, new ObjectId(getId()));
         }
 
-        object.append("nom", nom)
+        object.append("name", name)
                 .append("domaine", domaine)
                 .append(CREATED_AT, getCreatedAt() == null ? null : getCreatedAt().toString())
                 .append(UPDATED_AT, getUpdatedAt() == null ? null : getUpdatedAt().toString())

@@ -1,5 +1,8 @@
 package models;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.mongodb.BasicDBObject;
 import com.mongodb.DBObject;
 import net.vz.mongodb.jackson.DBCursor;
@@ -15,8 +18,15 @@ import java.util.List;
 
 public class Demande extends Document {
     private String id;
-    private LocalDate dateDemande;
+
+    @JsonProperty("date_demande")
+    @JsonSerialize(using = util.DateTimeSerializer.class)
+    @JsonDeserialize(using = util.DateTimeDeserializer.class)
+    private DateTime dateDemande;
+
+    @JsonProperty("id_patient")
     private String idPatient;
+
     private String etat;
     private String motifs;
 
@@ -26,8 +36,8 @@ public class Demande extends Document {
 
     }
 
-    public Demande(LocalDate dateDemande, String idPatient, String etat){
-        this.dateDemande = dateDemande;
+    public Demande(String idPatient, String etat){
+        this.dateDemande = DateTime.now();
         this.idPatient = idPatient;
         this.etat = etat;
     }
@@ -53,11 +63,11 @@ public class Demande extends Document {
         return object;
     }
 
-    public LocalDate getDateDemande() {
+    public DateTime getDateDemande() {
         return dateDemande;
     }
 
-    public void setDateDemande(LocalDate dateDemande) {
+    public void setDateDemande(DateTime dateDemande) {
         this.dateDemande = dateDemande;
     }
 

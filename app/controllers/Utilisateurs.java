@@ -1,6 +1,7 @@
 package controllers;
 
 
+import action.Cors;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import models.Utilisateur;
@@ -16,11 +17,23 @@ import play.libs.Json;
 import mongo.Error;
 import security.Security;
 
-//@Cors
+import java.util.List;
+
+@Cors
 public class Utilisateurs extends Controller {
     public final static String ACTIVATION_CODE = "activation_code";
     public final static String INVITATION_CODE = "invitation_code";
     public final static String PASSWORD_RESET_CODE = "password_reset_code";
+
+    public static Result list(){
+        List<Utilisateur> users = models.Utilisateur.findAll();
+        ObjectNode result = Json.newObject();
+        result.put("uri", "/v1/users/");
+        result.put("status", 200);
+        result.put("utilisateurs", Json.toJson(users));
+        return ok(result);
+    }
+
 
     @BodyParser.Of(BodyParser.Json.class)
     public static Result signup() {
@@ -133,12 +146,11 @@ public class Utilisateurs extends Controller {
             utilisateur.setPasswordSalt(passwordSalt);
             utilisateur.setPassword(encryptedPassword);
             utilisateur.setCreatedAt(DateTime.now());
-
+            //utilisateur.setActivated(true);
             return signupAdmin(utilisateur);
         }
         return null;
     }
-
 
     @BodyParser.Of(BodyParser.Json.class)
     public static Result login() {
@@ -265,7 +277,7 @@ public class Utilisateurs extends Controller {
 
     public static Result logout() {
 
-        Utilisateur utilisateur = (Utilisateur) Http.Context.current().args.get("utilisateur");
+        //Utilisateur utilisateur = (Utilisateur) Http.Context.current().args.get("utilisateur");
         Http.Request request = Http.Context.current().request();
 
         String token = request.getHeader("X-Auth-Token");
@@ -275,7 +287,7 @@ public class Utilisateurs extends Controller {
             ObjectNode message = Json.newObject();
             message.put("status", 200)
                     .put("uri", request().uri())
-                    .put("message", utilisateur.getName() + " is logged out.");
+                    .put("message",   "user is logged out.");
 
             return ok(message);
 
@@ -570,25 +582,37 @@ public class Utilisateurs extends Controller {
             return internalServerError(result);
         }
 
-        Utilisateur registered = Utilisateur.findByEmail(utilisateur.getEmail());
+        Utilisateur registered = null;
+        try {
+            registered = Utilisateur.findByEmail(utilisateur.getEmail());
+        } catch (Exception e){
 
-        models.Token tokenResult = generateActivationToken(registered);
-        if (tokenResult == null) {
-            Error error = new Error(Error.UNEXPECTED, "something went wrong when discarding the password reset code.");
-            ObjectNode result = Json.newObject();
-            result.put("uri", "/v1/users/activate");
-            result.put("status", 500);
-            result.put("error",  Json.toJson(error));
-            return internalServerError(result);
         }
+        if (registered != null) {
+            models.Token tokenResult = generateActivationToken(registered);
+            if (tokenResult == null) {
+                Error error = new Error(Error.UNEXPECTED, "something went wrong when discarding the password reset code.");
+                ObjectNode result = Json.newObject();
+                result.put("uri", "/v1/users/activate");
+                result.put("status", 500);
+                result.put("error", Json.toJson(error));
+                return internalServerError(result);
+            }
 
-        models.Token token = tokenResult;
+            models.Token token = tokenResult;
 
+            ObjectNode node = Json.newObject();
+            node.put("status", 201)
+                    .put("uri", request().uri())
+                    .put(ACTIVATION_CODE, token.getKey())
+                    .put("utilisateur", Json.toJson(registered));
+
+            return created(node);
+        }
         ObjectNode node = Json.newObject();
         node.put("status", 201)
                 .put("uri", request().uri())
-                .put(ACTIVATION_CODE, token.getKey())
-                .put("utilisateur", Json.toJson(registered));
+                .put("utilisateur", Json.toJson(utilisateur));
 
         return created(node);
     }

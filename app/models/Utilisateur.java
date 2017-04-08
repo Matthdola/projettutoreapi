@@ -295,6 +295,7 @@ public class Utilisateur extends Document {
         BasicDBObject query = new BasicDBObject();
         query.put("type", "PATIENT" );
         DBCursor cursor = collection.find(query);
+
         while(cursor.hasNext()) {
             Utilisateur patient = (Utilisateur) cursor.next();
             patients.add(patient);
@@ -307,15 +308,17 @@ public class Utilisateur extends Document {
     public static List<Utilisateur> findAllMedecin() {
         ArrayList<Utilisateur> medecins = new ArrayList<>();
         BasicDBObject query = new BasicDBObject();
-        query.put("type", "medecin" );
+        query.put("type", "MEDECIN" );
         DBCursor cursor = collection.find(query);
-        while(cursor.hasNext()) {
-            Utilisateur medecin = (Utilisateur) cursor.next();
-            medecins.add(medecin);
+        if(cursor != null) {
+           // while (cursor.hasNext()) {
+                Utilisateur medecin = (Utilisateur) cursor.next();
+                medecins.add(medecin);
 
+            //}
         }
-
         return medecins;
+
     }
 
     public static List<Assureur> findAllAssureur() {
@@ -350,9 +353,15 @@ public class Utilisateur extends Document {
     public static Utilisateur findByEmail(String email){
         BasicDBObject query = new BasicDBObject();
         query.put("email", email);
-        DBCursor cursor = collection.find(query);
-        while(cursor.hasNext()) {
-            return (Utilisateur) cursor.next();
+        try {
+            DBCursor cursor = collection.find(query);
+            if(cursor.count() > 0) {
+                while (cursor.hasNext()) {
+                    return (Utilisateur) cursor.next();
+                }
+            }
+        }catch (Exception e){
+            return null;
         }
         return null;
     }

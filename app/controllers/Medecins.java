@@ -2,6 +2,7 @@ package controllers;
 import action.Cors;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import models.Medecin;
 import org.joda.time.DateTime;
 import play.libs.Json;
 import play.mvc.BodyParser;
@@ -10,11 +11,11 @@ import play.mvc.Result;
 
 import java.util.List;
 
-//@Cors
+@Cors
 public class Medecins extends Controller {
 
     public static Result list(){
-        List<models.Utilisateur> medecins = models.Utilisateur.findAllMedecin();
+        List<models.Utilisateur> medecins = models.Medecin.findAllMedecin();
         ObjectNode result = Json.newObject();
         result.put("uri", "/v1/medecins/");
         result.put("status", 200);
@@ -57,7 +58,7 @@ public class Medecins extends Controller {
 
             return notFound(result);
         }
-        models.Medecin medecin = models.Medecin.findById(id);
+        models.Medecin medecin = (Medecin) models.Medecin.findById(id);
         if(medecin == null){
             ObjectNode result = Json.newObject();
             result.put("uri", "/v1/medecins/"+id);
@@ -75,7 +76,7 @@ public class Medecins extends Controller {
         if(json == null){
             return badRequest("Expecting Json data");
         } else {
-            String name = json.findPath("nom").textValue();
+            String name = json.findPath("name").textValue();
             if(name == null){
                 return badRequest("Missing parameter nom");
             }else {
@@ -85,7 +86,7 @@ public class Medecins extends Controller {
                 ObjectNode result = Json.newObject();
                 result.put("uri", "/v1/medecins/");
                 result.put("status", 202);
-                result.put("medecin", Json.toJson(medecin).toString());
+                result.put("medecin", Json.toJson(medecin));
                 return ok(result);
             }
         }
@@ -97,7 +98,7 @@ public class Medecins extends Controller {
         if(json == null){
             return badRequest("Expecting Json data");
         } else {
-            String name = json.findPath("nom").textValue();
+            String name = json.findPath("name").textValue();
             if(name == null){
                 return badRequest("Missing parameter [nom]");
             }else {
@@ -109,7 +110,7 @@ public class Medecins extends Controller {
                 ObjectNode result = Json.newObject();
                 result.put("uri", "/v1/medecins/"+id);
                 result.put("status", 200);
-                result.put("medecin", Json.toJson(medecin).toString());
+                result.put("medecin", Json.toJson(medecin));
                 return ok(result);
             }
         }
@@ -122,7 +123,7 @@ public class Medecins extends Controller {
         if (id.isEmpty()){
             return notFound(String.format("Medecin %s does not exist.", id));
         }
-        models.Medecin medecin = models.Medecin.findById(id);
+        models.Medecin medecin = (Medecin) models.Medecin.findById(id);
         if(medecin == null){
             return notFound(String.format("Medecin %s does not exist.", id));
         }
@@ -130,7 +131,7 @@ public class Medecins extends Controller {
         ObjectNode result = Json.newObject();
         result.put("uri", "/v1/medecins/"+id);
         result.put("status", 200);
-        result.put("medecin", Json.toJson(medecin).toString());
+        result.put("medecin", Json.toJson(medecin));
         return ok(result);
     }
 }

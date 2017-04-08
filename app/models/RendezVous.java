@@ -1,9 +1,13 @@
 package models;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.mongodb.BasicDBObject;
 import com.mongodb.DBObject;
 import net.vz.mongodb.jackson.JacksonDBCollection;
 import org.bson.types.ObjectId;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import org.joda.time.DateTime;
 import play.modules.mongodb.jackson.MongoDB;
 
 import java.time.LocalDate;
@@ -11,26 +15,38 @@ import java.time.LocalTime;
 import java.util.List;
 
 public class RendezVous extends Document {
+    @JsonProperty("id_demande")
     private String idDemande;
+
+    @JsonProperty("id_medecin")
     private String idMedecin;
-    private LocalDate jours;
+
+    @JsonSerialize(using = util.DateTimeSerializer.class)
+    @JsonDeserialize(using = util.DateTimeDeserializer.class)
+    private DateTime jours;
+
     private LocalTime heureDebut;
     private LocalTime heureFin;
+
+    @JsonProperty("id_consultation")
     private String idConsultation;
+
+    @JsonProperty("motifs")
     private String motifs;
 
     public static JacksonDBCollection<RendezVous, String> collection = MongoDB.getCollection("rendez_vous", RendezVous.class, String.class);
 
     public RendezVous(){
-        
+        this.jours = DateTime.now();
     }
 
     public RendezVous(String idDemande, String idMedecin){
         this.idDemande = idDemande;
         this.idMedecin = idMedecin;
+        this.jours = DateTime.now();
     }
 
-    public RendezVous(String idDemande, String idMedecin, LocalDate jours, LocalTime heureDebut){
+    public RendezVous(String idDemande, String idMedecin, DateTime jours, LocalTime heureDebut){
         this.idDemande = idDemande;
         this.idMedecin = idMedecin;
         this.jours = jours;
@@ -53,11 +69,11 @@ public class RendezVous extends Document {
         this.idMedecin = idMedecin;
     }
 
-    public LocalDate getJours() {
+    public DateTime getJours() {
         return jours;
     }
 
-    public void setJours(LocalDate jours) {
+    public void setJours(DateTime jours) {
         this.jours = jours;
     }
 
@@ -119,6 +135,7 @@ public class RendezVous extends Document {
     public static List<RendezVous> findAll() {
         return RendezVous.collection.find().toArray();
     }
+
     /*
         public static List<RendezVous> listByCentre(String centre) {
             ArrayList<Medecin> meds = new ArrayList<>();

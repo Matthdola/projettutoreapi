@@ -12,15 +12,15 @@ import play.mvc.Result;
 
 import java.util.List;
 
-//@Cors
+@Cors
 public class Rendez_vous extends Controller {
 
     public static Result list(){
-        List<models.RendezVous> rendezVouses = models.RendezVous.findAll();
+        List<models.RendezVous> rendezVous = models.RendezVous.findAll();
         ObjectNode result = Json.newObject();
-        result.put("uri", "/v1/patients/");
+        result.put("uri", "/v1/rendez_vous/");
         result.put("status", 200);
-        result.put("rendez_vous", Json.toJson(rendezVouses));
+        result.put("rendez_vous", Json.toJson(rendezVous));
         return ok(result);
     }
 
@@ -35,7 +35,11 @@ public class Rendez_vous extends Controller {
         if(rendezVous == null){
             return notFound(String.format("Rendez-vous %s does not exist.", id));
         }
-        return  ok(Json.toJson(rendezVous));
+        ObjectNode result = Json.newObject();
+        result.put("uri", "/v1/rendez_vous/"+id);
+        result.put("status", 200);
+        result.put("rendez_vous", Json.toJson(rendezVous));
+        return  ok(result);
     }
 
     @BodyParser.Of(BodyParser.Json.class)
@@ -44,17 +48,17 @@ public class Rendez_vous extends Controller {
         if(json == null){
             return badRequest("Expecting Json data");
         } else {
-            String name = json.findPath("nom").textValue();
+            String name = json.findPath("id_demande").textValue();
             if(name == null){
-                return badRequest("Missing parameter [nom]");
+                return badRequest("Missing parameter [id_demande]");
             }else {
                 models.RendezVous rendezVous = Json.fromJson(json, models.RendezVous.class);
                 models.RendezVous.save(rendezVous);
                 ObjectNode result = Json.newObject();
-                result.put("uri", "/v1/patients/");
+                result.put("uri", "/v1/rendez_vous/");
                 result.put("status", 202);
-                result.put("rendez_vous", Json.toJson(rendezVous).toString());
-                return ok(result);
+                result.put("rendez_vous", Json.toJson(rendezVous));
+                return created(result);
             }
         }
     }
@@ -65,7 +69,7 @@ public class Rendez_vous extends Controller {
         if(json == null){
             return badRequest("Expecting Json data");
         } else {
-            String name = json.findPath("nom").textValue();
+            String name = json.findPath("id_demande").textValue();
             if(name == null){
                 return badRequest("Missing parameter [nom]");
             }else {
@@ -75,9 +79,9 @@ public class Rendez_vous extends Controller {
                 }
                 models.RendezVous.update(rendezVous);
                 ObjectNode result = Json.newObject();
-                result.put("uri", "/v1/patients/"+id);
+                result.put("uri", "/v1/rendez_vous/"+id);
                 result.put("status", 200);
-                result.put("rendez_vous", Json.toJson(rendezVous).toString());
+                result.put("rendez_vous", Json.toJson(rendezVous));
                 return ok(result);
             }
         }
@@ -85,20 +89,20 @@ public class Rendez_vous extends Controller {
 
     public static Result delete(String id){
         if(id == null){
-            return notFound(String.format("Patient does not exist."));
+            return notFound(String.format("Patients does not exist."));
         }
         if (id.isEmpty()){
-            return notFound(String.format("Patient %s does not exist.", id));
+            return notFound(String.format("Patients %s does not exist.", id));
         }
         models.RendezVous rendezVous = models.RendezVous.findById(id);
         if(rendezVous == null){
-            return notFound(String.format("Patient %s does not exist.", id));
+            return notFound(String.format("Patients %s does not exist.", id));
         }
         models.RendezVous.remove(rendezVous);
         ObjectNode result = Json.newObject();
-        result.put("uri", "/v1/patients/"+id);
+        result.put("uri", "/v1/rendez_vous/"+id);
         result.put("status", 200);
-        result.put("rendez_vous", Json.toJson(rendezVous).toString());
+        result.put("rendez_vous", Json.toJson(rendezVous));
         return ok(result);
     }
 }

@@ -12,6 +12,7 @@ OPTIONS /*path                                      controllers.Application.pref
 POST    /v1/users/signup                            controllers.Utilisateurs.signup()
 POST    /v1/users/login                             controllers.Utilisateurs.login()
 POST    /v1/users/logout                            controllers.Utilisateurs.logout()
+GET     /v1/users                                   controllers.Utilisateurs.list()
 
 PUT     /v1/users/activate                          controllers.Utilisateurs.activate()
 
@@ -25,17 +26,17 @@ POST    /v1/medecins                            controllers.Medecins.create()
 DELETE  /v1/medecins/:id                        controllers.Medecins.delete(id: String)
 
 #Patient
-GET     /v1/patients                            controllers.Patient.list()
-GET     /v1/patients/:id                        controllers.Patient.read(id: String)
-PUT     /v1/patients/:id                        controllers.Patient.update(id: String)
-POST    /v1/patients                            controllers.Patient.create()
-DELETE  /v1/patients/:id                        controllers.Patient.delete(id: String)
+GET     /v1/patients                            controllers.Patients.list()
+GET     /v1/patients/:id                        controllers.Patients.read(id: String)
+PUT     /v1/patients/:id                        controllers.Patients.update(id: String)
+POST    /v1/patients                            controllers.Patients.create()
+DELETE  /v1/patients/:id                        controllers.Patients.delete(id: String)
 
 #Specialite
 GET     /v1/specialites                         controllers.Specialites.list
 GET     /v1/specialites/:id                     controllers.Specialites.read(id: String)
 PUT     /v1/specialites/:id                     controllers.Specialites.update(id: String)
-POST    /v1/specialites/                        controllers.Specialites.create()
+POST    /v1/specialites                        controllers.Specialites.create()
 DELETE  /v1/specialites/:id                     controllers.Specialites.delete(id: String)
 
 #Centre
