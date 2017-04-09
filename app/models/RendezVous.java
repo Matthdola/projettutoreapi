@@ -23,7 +23,7 @@ public class RendezVous extends Document {
     public static final String collectionName = "rendez_vous";
 
     @JsonProperty("id_demande")
-    private String idRendezVous;
+    private String idDemande;
 
     @JsonProperty("id_medecin")
     private String idMedecin;
@@ -45,25 +45,26 @@ public class RendezVous extends Document {
         this.jours = DateTime.now();
     }
 
-    public RendezVous(String idRendezVous, String idMedecin){
-        this.idRendezVous = idRendezVous;
+    public RendezVous(String idDemande, String idMedecin){
+        this.idDemande = idDemande;
         this.idMedecin = idMedecin;
         this.jours = DateTime.now();
     }
 
-    public RendezVous(String idRendezVous, String idMedecin, DateTime jours, LocalTime heureDebut){
-        this.idRendezVous = idRendezVous;
+    public RendezVous(String idDemande, String idMedecin, DateTime jours, LocalTime heureDebut){
+        this.idDemande = idDemande;
         this.idMedecin = idMedecin;
         this.jours = jours;
         this.heureDebut = heureDebut;
     }
 
-    public String getIdRendezVous() {
-        return idRendezVous;
+
+    public String getIdDemande() {
+        return idDemande;
     }
 
-    public void setIdRendezVous(String idRendezVous) {
-        this.idRendezVous = idRendezVous;
+    public void setIdDemande(String idDemande) {
+        this.idDemande = idDemande;
     }
 
     public String getIdMedecin() {
@@ -129,6 +130,7 @@ public class RendezVous extends Document {
         return "rendez-vous";
     }
 
+
     @Override
     public DBObject toBson() {
         BasicDBObject object = new BasicDBObject();
@@ -137,7 +139,7 @@ public class RendezVous extends Document {
             object.append(Document.ID, new ObjectId(getId()));
         }
 
-        object.append("id_demande", idRendezVous)
+        object.append("id_demande", idDemande)
                 .append("id_consultation", idConsultation)
                 .append("jours", jours)
                 .append("heure", heureDebut)
@@ -174,7 +176,33 @@ public class RendezVous extends Document {
 
     public static RendezVous fromBson(DBObject bson){
         RendezVous rendezVous = new RendezVous();
+        rendezVous.setId(bson.get(Document.ID).toString());
 
+        Object idDemande = bson.get("id_demande");
+        if (idDemande != null) {
+            rendezVous.setIdDemande(idDemande.toString());
+        }
+
+        Object idConsultation = bson.get("id_consultation");
+        if (idConsultation != null) {
+            rendezVous.setIdConsultation(idConsultation.toString());
+        }
+        Object motifs = bson.get("motifs");
+        if (motifs != null) {
+            rendezVous.setMotifs(motifs.toString());
+        }
+        Object idMedecin = bson.get("id_medecin");
+        if (idMedecin != null) {
+            rendezVous.setIdMedecin(idMedecin.toString());
+        }
+
+        Object createdAt = bson.get(Document.CREATED_AT);
+        Object updateDate = bson.get(Document.UPDATED_AT);
+        Object deleteAt = bson.get(Document.DELETED_AT);
+
+        rendezVous.setCreatedAt(createdAt == null ? null : DateTime.parse(createdAt.toString()));
+        rendezVous.setUpdatedAt(updateDate == null ? null : DateTime.parse(updateDate.toString()));
+        rendezVous.setDeletedAt(deleteAt == null ? null : DateTime.parse(deleteAt.toString()));
         return rendezVous;
     }
 

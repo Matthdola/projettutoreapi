@@ -9,6 +9,7 @@ import mongo.QueryResult;
 import net.vz.mongodb.jackson.DBCursor;
 import net.vz.mongodb.jackson.JacksonDBCollection;
 import org.bson.types.ObjectId;
+import org.joda.time.DateTime;
 import play.modules.mongodb.jackson.MongoDB;
 
 import java.util.ArrayList;
@@ -163,10 +164,50 @@ public class Centre extends Document {
 
     }
 
-    public static ActeMedical fromBson(DBObject bson){
-        ActeMedical acteMedical = new ActeMedical();
+    public static Centre fromBson(DBObject bson){
+        Centre centre = new Centre();
+        centre.setId(bson.get(Document.ID).toString());
 
-        return acteMedical;
+        Object nom = bson.get("nom");
+        if (nom != null) {
+            centre.setNom(nom.toString());
+        }
+
+        Object ville = bson.get("ville");
+        if (ville != null) {
+            centre.setVille(ville.toString());
+        }
+
+        Object pays = bson.get("pays");
+        if (pays != null) {
+            centre.setPays(pays.toString());
+        }
+        Object telephone = bson.get("telephone");
+        if (telephone != null) {
+            centre.setTelephone(telephone.toString());
+        }
+        Object email = bson.get("email");
+        if (email != null) {
+            centre.setEmail(email.toString());
+        }
+
+        Object cellulaire = bson.get(Utilisateur.CELLULAIRE);
+        if (cellulaire != null) {
+            centre.setCellulaire(cellulaire.toString());
+        }
+        Object specialites = bson.get("specialites");
+        if (specialites != null) {
+            //centre.setSpecialites();
+        }
+
+        Object createdAt = bson.get(Document.CREATED_AT);
+        Object updateDate = bson.get(Document.UPDATED_AT);
+        Object deleteAt = bson.get(Document.DELETED_AT);
+
+        centre.setCreatedAt(createdAt == null ? null : DateTime.parse(createdAt.toString()));
+        centre.setUpdatedAt(updateDate == null ? null : DateTime.parse(updateDate.toString()));
+        centre.setDeletedAt(deleteAt == null ? null : DateTime.parse(deleteAt.toString()));
+        return centre;
     }
 
 

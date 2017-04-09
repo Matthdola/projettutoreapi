@@ -11,6 +11,7 @@ import net.vz.mongodb.jackson.DBCursor;
 import net.vz.mongodb.jackson.JacksonDBCollection;
 import org.bson.types.ObjectId;
 import org.codehaus.jackson.annotate.JsonProperty;
+import org.joda.time.DateTime;
 import play.modules.mongodb.jackson.MongoDB;
 
 import java.util.ArrayList;
@@ -109,6 +110,33 @@ public class ActeMedical extends Document {
     public static ActeMedical fromBson(DBObject bson){
         ActeMedical acteMedical = new ActeMedical();
 
+        acteMedical.setId(bson.get(Document.ID).toString());
+
+        Object nom = bson.get("nom");
+        if (nom != null) {
+            acteMedical.setNomActes(nom.toString());
+        }
+
+        Object montantAss = bson.get("montan_assure");
+        if (montantAss != null) {
+            acteMedical.setMontantAssure(Double.parseDouble(montantAss.toString()));
+        }
+        Object montantNonAss = bson.get("montant_non_assure");
+        if (montantNonAss != null) {
+            acteMedical.setMontantNonAssure(Double.parseDouble(montantNonAss.toString()));
+        }
+        Object montantEsp = bson.get("montant_espatrie");
+        if (montantEsp != null) {
+            acteMedical.setMontantEspatrie(Double.parseDouble(montantEsp.toString()));
+        }
+
+        Object createdAt = bson.get(Document.CREATED_AT);
+        Object updateDate = bson.get(Document.UPDATED_AT);
+        Object deleteAt = bson.get(Document.DELETED_AT);
+
+        acteMedical.setCreatedAt(createdAt == null ? null : DateTime.parse(createdAt.toString()));
+        acteMedical.setUpdatedAt(updateDate == null ? null : DateTime.parse(updateDate.toString()));
+        acteMedical.setDeletedAt(deleteAt == null ? null : DateTime.parse(deleteAt.toString()));
         return acteMedical;
     }
 

@@ -131,10 +131,37 @@ public class Demande extends Document {
         return Collection.findAll(collectionName, query, Demande::fromBson);
     }
 
-    public static ActeMedical fromBson(DBObject bson){
-        ActeMedical acteMedical = new ActeMedical();
+    public static Demande fromBson(DBObject bson){
+        Demande demande = new Demande();
 
-        return acteMedical;
+        demande.setId(bson.get(Document.ID).toString());
+
+        Object date = bson.get("date");
+        if (date != null) {
+            demande.setDateDemande(DateTime.parse(date.toString()));
+        }
+
+        Object idPatient = bson.get("id_patient");
+        if (idPatient != null) {
+            demande.setIdPatient(idPatient.toString());
+        }
+        Object etat = bson.get("etat");
+        if (etat != null) {
+            demande.setMotifs(etat.toString());
+        }
+        Object motifs = bson.get("motif");
+        if (motifs != null) {
+            demande.setMotifs(motifs.toString());
+        }
+
+        Object createdAt = bson.get(Document.CREATED_AT);
+        Object updateDate = bson.get(Document.UPDATED_AT);
+        Object deleteAt = bson.get(Document.DELETED_AT);
+
+        demande.setCreatedAt(createdAt == null ? null : DateTime.parse(createdAt.toString()));
+        demande.setUpdatedAt(updateDate == null ? null : DateTime.parse(updateDate.toString()));
+        demande.setDeletedAt(deleteAt == null ? null : DateTime.parse(deleteAt.toString()));
+        return demande;
     }
 
 

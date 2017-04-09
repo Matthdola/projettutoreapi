@@ -113,7 +113,7 @@ public class Utilisateurs extends Controller {
         }
 
         QueryResult tempUserResult = Utilisateur.findByEmail(mail);
-        if (tempUserResult.isError()) {
+        if (!tempUserResult.isError()) {
             Error error = new Error(Error.DUPLICATE_KEY, "The given email is already used.");
 
             result.put("uri", request().uri());
