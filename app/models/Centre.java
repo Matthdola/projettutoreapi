@@ -2,6 +2,10 @@ package models;
 
 import com.mongodb.BasicDBObject;
 import com.mongodb.DBObject;
+import mongo.Collection;
+import mongo.Document;
+import mongo.Error;
+import mongo.QueryResult;
 import net.vz.mongodb.jackson.DBCursor;
 import net.vz.mongodb.jackson.JacksonDBCollection;
 import org.bson.types.ObjectId;
@@ -12,6 +16,8 @@ import java.util.List;
 import java.util.function.Predicate;
 
 public class Centre extends Document {
+    public static final String collectionName = "centres";
+
     private String nom;
     private String pays;
     private String ville;
@@ -21,8 +27,6 @@ public class Centre extends Document {
     private String cellulaire;
     private String logoUrl;
     private ArrayList<Integer> specialites;
-
-    public static JacksonDBCollection<Centre, String> collection = MongoDB.getCollection("centres", Centre.class, String.class);
 
     public Centre(){
         specialites = new ArrayList<>();
@@ -119,6 +123,21 @@ public class Centre extends Document {
     }
 
     @Override
+    public boolean isError() {
+        return false;
+    }
+
+    @Override
+    public String getCollectionName() {
+        return "centres";
+    }
+
+    @Override
+    public String getDocumentName() {
+        return "centre";
+    }
+
+    @Override
     public DBObject toBson() {
         BasicDBObject object = new BasicDBObject();
 
@@ -144,76 +163,52 @@ public class Centre extends Document {
 
     }
 
-    public static List<Centre> findAll() {
-        return Centre.collection.find().toArray();
+    public static ActeMedical fromBson(DBObject bson){
+        ActeMedical acteMedical = new ActeMedical();
+
+        return acteMedical;
     }
 
-    public static List<Centre> listByVille(String ville) {
-        ArrayList<Centre> centres = new ArrayList<>();
 
+    public static QueryResult listByVille(String ville) {
         BasicDBObject query = new BasicDBObject();
         query.put("ville", ville);
-        DBCursor cursor = collection.find(query);
-        while(cursor.hasNext()) {
-            Centre centre = (Centre)cursor.next();
-            if(centre.ville.equals(ville)){
-                centres.add(centre);
-            }
-        }
-
-        return centres;
+        return Collection.findAll(collectionName, query, Centre::fromBson);
     }
 
-    public static List<Centre> listByType(String type) {
-        ArrayList<Centre> centres = new ArrayList<>();
+    public static QueryResult listByType(String type) {
         BasicDBObject query = new BasicDBObject();
         query.put("type", type);
-        DBCursor cursor = collection.find(query);
-        while(cursor.hasNext()) {
-            Centre centre = (Centre)cursor.next();
-            if(centre.type.equals(type)){
-                centres.add(centre);
-            }
-        }
-
-        return centres;
+        return Collection.findAll(collectionName, query, Centre::fromBson);
     }
 
-    public static Centre findById(String id){
-        Centre centre = Centre.collection.findOneById(id);
-        return centre;
+    public static QueryResult findAll() {
+        return Collection.findAll(collectionName, new BasicDBObject(), Centre::fromBson);
     }
 
-    public static List<Centre> findByName(String name){
-        final  List<Centre> results = new ArrayList<>();
+    public static QueryResult findById(String id){
+
+        return Collection.findById(collectionName, id, Centre::fromBson, "centre not found");
+
+    }
+
+    public static QueryResult findByName(String name){
 
         BasicDBObject query = new BasicDBObject();
-        query.put("nom", name);
-        DBCursor cursor = collection.find(query);
-        while(cursor.hasNext()) {
-            results.add((Centre) cursor.next());
-        }
-        return results;
+        query.put("name", name);
+        return Collection.findAll(collectionName, query, Centre::fromBson);
     }
 
-    public static boolean remove(Centre centre){
-        BasicDBObject query = new BasicDBObject();
-        query.put("_id", new org.bson.types.ObjectId(centre.getId()) );
-        try {
-            Centre.collection.remove(query);
-            return true;
-        }catch (Exception e){
-            return false;
-        }
+    public static QueryResult remove(Centre centre){
+        return Collection.delete(collectionName, centre);
     }
 
-    public static void save(Centre centre){
-        Centre.collection.save(centre);
+    public static QueryResult save(Centre centre){
+        return Collection.insert(collectionName, centre, e-> new Error(Error.DUPLICATE_KEY, "A centre with the same name already existe"));
+
     }
 
-    public static void update(Centre centre){
-        BasicDBObject query = new BasicDBObject();
-        query.put("_id", new org.bson.types.ObjectId(centre.getId()) );
-        collection.update(query, centre.toBson());
+    public static QueryResult update(Centre centre){
+        return Collection.update(collectionName, centre, e-> new Error(Error.DUPLICATE_KEY, "centre with the same name already exist"));
     }
 }

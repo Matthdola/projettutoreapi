@@ -36,7 +36,7 @@ DELETE  /v1/patients/:id                        controllers.Patients.delete(id: 
 GET     /v1/specialites                         controllers.Specialites.list
 GET     /v1/specialites/:id                     controllers.Specialites.read(id: String)
 PUT     /v1/specialites/:id                     controllers.Specialites.update(id: String)
-POST    /v1/specialites                        controllers.Specialites.create()
+POST    /v1/specialites                         controllers.Specialites.create()
 DELETE  /v1/specialites/:id                     controllers.Specialites.delete(id: String)
 
 #Centre

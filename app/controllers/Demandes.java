@@ -4,6 +4,8 @@ package controllers;
 import action.Cors;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import mongo.PaginatedQueryResult;
+import mongo.QueryResult;
 import org.joda.time.DateTime;
 import play.libs.Json;
 import play.mvc.BodyParser;
@@ -17,11 +19,14 @@ import java.util.List;
 public class Demandes extends Controller {
 
     public static Result list(){
-        List<models.Demande> demandes = models.Demande.findAll();
+        QueryResult demandes = models.Demande.findAll();
+        if (demandes.isError()){
+            return notFound(String.format("Demandes does not exist."));
+        }
         ObjectNode result = Json.newObject();
         result.put("uri", "/v1/demandes/");
         result.put("status", 200);
-        result.put("demandes", Json.toJson(demandes));
+        result.put("demandes", Json.toJson(((PaginatedQueryResult)demandes).getResults()));
         return ok(result);
     }
 
@@ -32,8 +37,8 @@ public class Demandes extends Controller {
         if(id.isEmpty()){
             return notFound(String.format("Demande %s does not exist.", id));
         }
-        models.Demande demande = models.Demande.findById(id);
-        if(demande == null){
+        QueryResult demande = models.Demande.findById(id);
+        if(demande.isError()){
             return notFound(String.format("Demande %s does not exist.", id));
         }
         return  ok(Json.toJson(demande));
@@ -46,8 +51,8 @@ public class Demandes extends Controller {
         if(patientId.isEmpty()){
             return notFound(String.format("Demande does not exist with %s.", patientId));
         }
-        List<models.Demande> demandes = models.Demande.listByIdPatient(patientId);
-        if(demandes == null){
+        QueryResult demandes = models.Demande.listByIdPatient(patientId);
+        if(demandes.isError()){
             return notFound(String.format("Demande does not exist with %s.", patientId));
         }
         return  ok(Json.toJson(demandes));
@@ -60,8 +65,8 @@ public class Demandes extends Controller {
         if(etat.isEmpty()){
             return notFound(String.format("Demande does not exist with %s .", etat));
         }
-        List<models.Demande> demandes = models.Demande.listByEtat(etat);
-        if(demandes == null){
+        QueryResult demandes = models.Demande.listByEtat(etat);
+        if(demandes.isError()){
             return notFound(String.format("Demande does not exist with %s.", etat));
         }
         return  ok(Json.toJson(demandes));
@@ -75,8 +80,8 @@ public class Demandes extends Controller {
         } else {
             String date = json.findPath("date").textValue();
             DateTime dateDemande = DateTime.parse(date);
-            List<models.Demande> demandes = models.Demande.listByDate(dateDemande);
-            if(demandes == null){
+            QueryResult demandes = models.Demande.listByDate(dateDemande);
+            if(demandes.isError()){
                 return notFound(String.format("Demande does not exist with %s.", date));
             }
             return  ok(Json.toJson(demandes));
@@ -138,11 +143,11 @@ public class Demandes extends Controller {
         if (id.isEmpty()){
             return notFound(String.format("Demande %s does not exist.", id));
         }
-        models.Demande demande = models.Demande.findById(id);
-        if(demande == null){
+        QueryResult demande = models.Demande.findById(id);
+        if(demande.isError()){
             return notFound(String.format("Demande %s does not exist.", id));
         }
-        models.Demande.remove(demande);
+        models.Demande.remove((Demande)demande);
         ObjectNode result = Json.newObject();
         result.put("uri", "/v1/demandes/"+id);
         result.put("status", 200);

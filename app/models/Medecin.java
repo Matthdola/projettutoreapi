@@ -6,20 +6,43 @@ import java.util.List;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.mongodb.BasicDBObject;
 import com.mongodb.DBObject;
+import mongo.Collection;
+import mongo.Document;
+import mongo.QueryResult;
 import net.vz.mongodb.jackson.DBCursor;
 import org.bson.types.ObjectId;
+import org.codehaus.jackson.annotate.JsonProperty;
 import play.modules.mongodb.jackson.MongoDB;
 import net.vz.mongodb.jackson.JacksonDBCollection;
 
 import javax.rmi.CORBA.Util;
 
 public class Medecin extends Utilisateur {
+    public static final String collectionName = "medecins";
+    @JsonIgnore
+    public static final String SPECIALITES = "specialites";
+
+    @JsonIgnore
+    public static final String CENTRE_PRINCIPAL = "centre_principal";
+
+    @JsonIgnore
+    public static final String CENTRES = "centres";
+
+    @JsonIgnore
+    public static final String JOURS_CONSULTATION = "jours_consultations";
+
+    @JsonProperty(SPECIALITES)
     private ArrayList<String> specialites;
+
+    @JsonProperty(CENTRE_PRINCIPAL)
     private String centrePrincipal;
+
+    @JsonProperty(CENTRES)
     private ArrayList<String> centres;
+
+    @JsonProperty(JOURS_CONSULTATION)
     private ArrayList<String> joursConsultation;
 
-    public static JacksonDBCollection<Utilisateur, String> collection = MongoDB.getCollection("utilisateurs", Utilisateur.class, String.class);
     
     public Medecin(String id) {
         super();
@@ -95,8 +118,24 @@ public class Medecin extends Utilisateur {
     }
 
     public static Medecin fromBson(DBObject bson){
-        Medecin medecin = new Medecin();
+        Medecin medecin = (Medecin) Utilisateur.fromBson(bson);
 
+        Object specialite = bson.get(Medecin.SPECIALITES);
+        if (specialite != null) {
+            //medecin.setSpecialites(specialite);
+        }
+        Object centrePrin = bson.get(Medecin.CENTRE_PRINCIPAL);
+        if (centrePrin != null) {
+            //medecin.setCentrePrincipal(centrePrin.toString());
+        }
+        Object centres = bson.get(Medecin.CENTRES);
+        if (centres != null) {
+            //medecin.setCentres(profession.toString());
+        }
+        Object jours = bson.get(Medecin.JOURS_CONSULTATION);
+        if (jours != null) {
+            //medecin.setJoursConsultation(telephone.toString());
+        }
         return medecin;
     }
 
@@ -110,86 +149,19 @@ public class Medecin extends Utilisateur {
     }
 
 
-    public static List<Utilisateur> findAll() {
-        ArrayList<Utilisateur> meds = new ArrayList<>();
+
+    public static QueryResult listByCentre(String centre) {
         BasicDBObject query = new BasicDBObject();
-        query.put("type", "MEDECIN");
+        query.put("centre", centre );
+        return Collection.find(collectionName, query, Utilisateur::fromBson, "User with the centre " + centre + "not found");
 
-        DBCursor cursor = collection.find(query);
-        while(cursor.hasNext()) {
-            meds.add((Utilisateur)cursor.next());
-        }
 
-        return meds;
     }
 
-
-    public static List<Medecin> listByCentre(String centre) {
-        ArrayList<Medecin> meds = new ArrayList<>();
-
+    public static QueryResult listBySpecialite(String specialite) {
         BasicDBObject query = new BasicDBObject();
-        DBCursor cursor = collection.find(query);
-        while(cursor.hasNext()) {
-            Medecin medecin = (Medecin)cursor.next();
-            if(medecin.centres.contains(centre)){
-                meds.add(medecin);
-            }
-        }
-
-        return meds;
+        query.put("specialite", specialite );
+        return Collection.find(collectionName, query, Utilisateur::fromBson, "User with the specialite " + specialite + "not found");
     }
 
-    public static List<Medecin> listBySpecialite(String specialite) {
-        ArrayList<Medecin> meds = new ArrayList<>();
-        BasicDBObject query = new BasicDBObject();
-        DBCursor cursor = collection.find(query);
-        while(cursor.hasNext()) {
-            Medecin medecin = (Medecin)cursor.next();
-            if(medecin.specialites.contains(specialite)){
-                meds.add(medecin);
-            }
-        }
-
-        return meds;
-    }
-
-    public static Utilisateur findById(String id){
-        Utilisateur medecin = Medecin.collection.findOneById(id);
-        return medecin;
-    }
-
-    /*
-    public static List<Medecin> findByName(String name){
-        final  List<Medecin> results = new ArrayList<>();
-
-        BasicDBObject query = new BasicDBObject();
-        query.put("name", name);
-        DBCursor cursor = collection.find(query);
-        while(cursor.hasNext()) {
-            results.add((Medecin) cursor.next());
-        }
-        return results;
-    }
-    */
-
-    public static boolean remove(Medecin medecin){
-        BasicDBObject query = new BasicDBObject();
-        query.put("_id", new org.bson.types.ObjectId(medecin.getId()) );
-        try {
-            Medecin.collection.remove(query);
-            return true;
-        }catch (Exception e){
-            return false;
-        }
-    }
-
-    public static void save(Medecin medecin){
-        Medecin.collection.save(medecin);
-    }
-
-    public static void update(Medecin medecin){
-        BasicDBObject query = new BasicDBObject();
-        query.put("_id", new org.bson.types.ObjectId(medecin.getId()) );
-        collection.update(query, medecin.toBson());
-    }
 }

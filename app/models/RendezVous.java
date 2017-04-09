@@ -4,6 +4,10 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.mongodb.BasicDBObject;
 import com.mongodb.DBObject;
+import mongo.Collection;
+import mongo.Document;
+import mongo.Error;
+import mongo.QueryResult;
 import net.vz.mongodb.jackson.JacksonDBCollection;
 import org.bson.types.ObjectId;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -12,11 +16,14 @@ import play.modules.mongodb.jackson.MongoDB;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.List;
 
 public class RendezVous extends Document {
+    public static final String collectionName = "rendez_vous";
+
     @JsonProperty("id_demande")
-    private String idDemande;
+    private String idRendezVous;
 
     @JsonProperty("id_medecin")
     private String idMedecin;
@@ -33,32 +40,30 @@ public class RendezVous extends Document {
 
     @JsonProperty("motifs")
     private String motifs;
-
-    public static JacksonDBCollection<RendezVous, String> collection = MongoDB.getCollection("rendez_vous", RendezVous.class, String.class);
-
+    
     public RendezVous(){
         this.jours = DateTime.now();
     }
 
-    public RendezVous(String idDemande, String idMedecin){
-        this.idDemande = idDemande;
+    public RendezVous(String idRendezVous, String idMedecin){
+        this.idRendezVous = idRendezVous;
         this.idMedecin = idMedecin;
         this.jours = DateTime.now();
     }
 
-    public RendezVous(String idDemande, String idMedecin, DateTime jours, LocalTime heureDebut){
-        this.idDemande = idDemande;
+    public RendezVous(String idRendezVous, String idMedecin, DateTime jours, LocalTime heureDebut){
+        this.idRendezVous = idRendezVous;
         this.idMedecin = idMedecin;
         this.jours = jours;
         this.heureDebut = heureDebut;
     }
 
-    public String getIdDemande() {
-        return idDemande;
+    public String getIdRendezVous() {
+        return idRendezVous;
     }
 
-    public void setIdDemande(String idDemande) {
-        this.idDemande = idDemande;
+    public void setIdRendezVous(String idRendezVous) {
+        this.idRendezVous = idRendezVous;
     }
 
     public String getIdMedecin() {
@@ -110,6 +115,21 @@ public class RendezVous extends Document {
     }
 
     @Override
+    public boolean isError() {
+        return false;
+    }
+
+    @Override
+    public String getCollectionName() {
+        return "rendez-vous";
+    }
+
+    @Override
+    public String getDocumentName() {
+        return "rendez-vous";
+    }
+
+    @Override
     public DBObject toBson() {
         BasicDBObject object = new BasicDBObject();
 
@@ -117,7 +137,7 @@ public class RendezVous extends Document {
             object.append(Document.ID, new ObjectId(getId()));
         }
 
-        object.append("id_demande", idDemande)
+        object.append("id_demande", idRendezVous)
                 .append("id_consultation", idConsultation)
                 .append("jours", jours)
                 .append("heure", heureDebut)
@@ -132,77 +152,60 @@ public class RendezVous extends Document {
         return object;
     }
 
-    public static List<RendezVous> findAll() {
-        return RendezVous.collection.find().toArray();
+
+    public static QueryResult listByEtat(String etat) {
+        BasicDBObject query = new BasicDBObject();
+        query.put("etat", etat);
+        return Collection.findAll(collectionName, query, RendezVous::fromBson);
     }
 
-    /*
-        public static List<RendezVous> listByCentre(String centre) {
-            ArrayList<Medecin> meds = new ArrayList<>();
+    public static QueryResult listByIdPatient(String idPatient) {
+        ArrayList<RendezVous> demandes = new ArrayList<>();
+        BasicDBObject query = new BasicDBObject();
+        query.put("id_patient", idPatient);
+        return Collection.findAll(collectionName, query, RendezVous::fromBson);
+    }
 
-            BasicDBObject query = new BasicDBObject();
-            DBCursor cursor = collection.find(query);
-            while(cursor.hasNext()) {
-                Medecin medecin = (Medecin)cursor.next();
-                if(medecin.centres.contains(centre)){
-                    meds.add(medecin);
-                }
-          }
+    public static QueryResult listByDate(DateTime date){
+        BasicDBObject query = new BasicDBObject();
+        query.put("dateRendezVous", date);
+        return Collection.findAll(collectionName, query, RendezVous::fromBson);
+    }
 
-            return meds;
-        }
-        /*
-        public static List<Medecin> listBySpecialite(String specialite) {
-            ArrayList<Medecin> meds = new ArrayList<>();
-            BasicDBObject query = new BasicDBObject();
-            DBCursor cursor = collection.find(query);
-            while(cursor.hasNext()) {
-                Medecin medecin = (Medecin)cursor.next();
-                if(medecin.specialites.contains(specialite)){
-                    meds.add(medecin);
-                }
-            }
+    public static RendezVous fromBson(DBObject bson){
+        RendezVous rendezVous = new RendezVous();
 
-            return meds;
-        }
-
-         public static List<RendezVous> findByName(String idMedecin){
-            final  List<RendezVous> results = new ArrayList<>();
-
-            BasicDBObject query = new BasicDBObject();
-            query.put("idMedecin", idMedecin);
-            DBCursor cursor = collection.find(query);
-            while(cursor.hasNext()) {
-                results.add((RendezVous) cursor.next());
-            }
-            return results;
-        }
-
-        */
-
-    public static RendezVous findById(String id){
-        RendezVous rendezVous = RendezVous.collection.findOneById(id);
         return rendezVous;
     }
 
-    public static boolean remove(RendezVous rendezVous){
-        BasicDBObject query = new BasicDBObject();
-        query.put("_id", new org.bson.types.ObjectId(rendezVous.getId()) );
-        try {
-            RendezVous.collection.remove(query);
-            return true;
-        }catch (Exception e){
-            return false;
-        }
+
+    public static QueryResult findAll() {
+        return Collection.findAll(collectionName, new BasicDBObject(), RendezVous::fromBson);
     }
 
-    public static void save(RendezVous rendezVous){
-        RendezVous.collection.save(rendezVous);
+    public static QueryResult findById(String id){
+
+        return Collection.findById(collectionName, id, RendezVous::fromBson, "RendezVous not found");
+
     }
 
-    public static void update(RendezVous rendezVous){
+    public static QueryResult findByName(String name){
+
         BasicDBObject query = new BasicDBObject();
-        query.put("_id", new org.bson.types.ObjectId(rendezVous.getId()) );
-        collection.update(query, rendezVous.toBson());
+        query.put("name", name);
+        return Collection.findAll(collectionName, query, RendezVous::fromBson);
+    }
+
+    public static QueryResult remove(RendezVous rendezVous){
+        return Collection.delete(collectionName, rendezVous);
+    }
+
+    public static QueryResult save(RendezVous rendezVous){
+        return Collection.insert(collectionName, rendezVous, e-> new Error(Error.DUPLICATE_KEY, "A RendezVous with the same name already existe"));
+
+    }
+
+    public static QueryResult update(RendezVous rendezVous){
+        return Collection.update(collectionName, rendezVous, e-> new Error(Error.DUPLICATE_KEY, "RendezVous with the same name already exist"));
     }
 }

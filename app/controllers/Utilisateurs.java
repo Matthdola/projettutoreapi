@@ -5,6 +5,8 @@ import action.Cors;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import models.Utilisateur;
+import mongo.PaginatedQueryResult;
+import mongo.QueryResult;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.validator.routines.EmailValidator;
 import org.joda.time.DateTime;
@@ -26,11 +28,21 @@ public class Utilisateurs extends Controller {
     public final static String PASSWORD_RESET_CODE = "password_reset_code";
 
     public static Result list(){
-        List<Utilisateur> users = models.Utilisateur.findAll();
+        QueryResult queryResult = models.Utilisateur.findAll();
         ObjectNode result = Json.newObject();
+        if (queryResult.isError()){
+            Error error = new Error(Error.INVALID_CONTENT_TYPE, "'Content-Type' header must be set to 'application/json' for this request.");
+
+            result.put("uri", request().uri());
+            result.put("status", 400);
+            result.put("error",  Json.toJson(error));
+
+            return badRequest(result);
+        }
+
         result.put("uri", "/v1/users/");
         result.put("status", 200);
-        result.put("utilisateurs", Json.toJson(users));
+        result.put("utilisateurs", Json.toJson( (  (PaginatedQueryResult)queryResult).getResults()));
         return ok(result);
     }
 
@@ -100,8 +112,8 @@ public class Utilisateurs extends Controller {
             return badRequest(result);
         }
 
-        Utilisateur tempUserResult = Utilisateur.findByEmail(mail);
-        if (tempUserResult != null) {
+        QueryResult tempUserResult = Utilisateur.findByEmail(mail);
+        if (tempUserResult.isError()) {
             Error error = new Error(Error.DUPLICATE_KEY, "The given email is already used.");
 
             result.put("uri", request().uri());
@@ -206,8 +218,8 @@ public class Utilisateurs extends Controller {
             return badRequest(result);
         }
 
-        Utilisateur result1 = Utilisateur.findByName(name);
-        if (result1 == null) {
+        QueryResult result1 = Utilisateur.findByName(name);
+        if (result1.isError()) {
 
             Error error = new Error(Error.EMPTY_PARAMETER, "the utilisateur name and the password can not be empty.");
             result = Json.newObject();
@@ -215,27 +227,6 @@ public class Utilisateurs extends Controller {
             result.put("status", 400);
             result.put("error",  Json.toJson(error));
             return internalServerError(result);
-            /*
-            Utilisateur res = Utilisateur.findByEmail(name);
-            if (res == null) {
-
-
-                Error error = (Error) result;
-
-                switch (error.getCode()) {
-                    case Error.NOT_FOUND:
-                        Error err = new Error(Error.INVALID_CREDENTIALS, "invalid credentials.");
-                        return unauthorized((new Response(401, request(), err)).toJson());
-
-                    case Error.DATABASE_ACCESS_TIMEOUT:
-                        return status(408, (new Response(408, request(), error)).toJson());
-
-                    default:
-                        return internalServerError((new Response(500, request(), error)).toJson());
-                }
-
-            }
-            */
         }
 
         Utilisateur utilisateur = (Utilisateur) result1;
@@ -339,8 +330,8 @@ public class Utilisateurs extends Controller {
             return badRequest(result);
         }
 
-        models.Token res = models.Token.findByKey(key).get(0);
-        if (res == null) {
+        QueryResult res =  models.Token.findByKey(key);
+        if (res.isError()) {
             Error error = new Error(Error.INVALID_TOKEN, "the activation code is invalid");
             result = Json.newObject();
             result.put("uri", request().uri());
@@ -350,7 +341,7 @@ public class Utilisateurs extends Controller {
             return notFound(result);
         }
 
-        models.Token token =  res;
+        models.Token token =  (models.Token) res;
         if (token.getType() != models.Token.Type.ACTIVATION) {
             Error error = new Error(Error.INVALID_TOKEN, "the activation code is invalid.");
             result = Json.newObject();
@@ -360,8 +351,8 @@ public class Utilisateurs extends Controller {
             return notFound(result);
         }
 
-        Utilisateur userResult = Utilisateur.findById(token.getUserId());
-        if (userResult == null) {
+        QueryResult userResult = Utilisateur.findById(token.getUserId());
+        if (userResult.isError()) {
             Error error = new Error(Error.NOT_FOUND, "Utilisateur not Found");
             result = Json.newObject();
             result.put("uri", request().uri());
@@ -377,7 +368,10 @@ public class Utilisateurs extends Controller {
 
         try {
             Utilisateur.update(utilisateur);
-            utilisateur = Utilisateur.findByEmail(utilisateur.getEmail());
+            res = Utilisateur.findByEmail(utilisateur.getEmail());
+            if (!res.isError()) {
+                utilisateur = (Utilisateur) res;
+            }
         }catch (Exception e){
             Error error = new Error(Error.NOT_FOUND, "Utilisateur not Found");
             result = Json.newObject();
@@ -438,8 +432,8 @@ public class Utilisateurs extends Controller {
             return badRequest(result);
         }
 
-        Utilisateur res = Utilisateur.findByEmail(email);
-        if (res == null) {
+        QueryResult res = Utilisateur.findByEmail(email);
+        if (res.isError()) {
             Error error = new Error(Error.NOT_FOUND, "Utilisateur not Found");
             result = Json.newObject();
             result.put("uri", request().uri());
@@ -504,8 +498,8 @@ public class Utilisateurs extends Controller {
             return badRequest(result);
         }
 
-        models.Token tokenResult = models.Token.findByKey(key).get(0);
-        if (tokenResult == null) {
+        QueryResult tokenResult = models.Token.findByKey(key);
+        if (tokenResult.isError()) {
             Error error = new Error(Error.INVALID_TOKEN, "the password reset code is invalid.");
             result = Json.newObject();
             result.put("uri", "/v1/resetpassword/");
@@ -524,8 +518,8 @@ public class Utilisateurs extends Controller {
             return badRequest(result);
         }
 
-        Utilisateur userResult = Utilisateur.findById(token.getUserId());
-        if (userResult == null) {
+        QueryResult userResult = Utilisateur.findById(token.getUserId());
+        if (userResult.isError()) {
             Error error = new Error(Error.INVALID_TOKEN, "the password reset code is invalid.");
             result = Json.newObject();
             result.put("uri", "/v1/resetpassword/");
@@ -582,14 +576,10 @@ public class Utilisateurs extends Controller {
             return internalServerError(result);
         }
 
-        Utilisateur registered = null;
-        try {
-            registered = Utilisateur.findByEmail(utilisateur.getEmail());
-        } catch (Exception e){
+        QueryResult registered = Utilisateur.findByEmail(utilisateur.getEmail());
 
-        }
-        if (registered != null) {
-            models.Token tokenResult = generateActivationToken(registered);
+        if (!registered.isError()) {
+            models.Token tokenResult = generateActivationToken((Utilisateur) registered);
             if (tokenResult == null) {
                 Error error = new Error(Error.UNEXPECTED, "something went wrong when discarding the password reset code.");
                 ObjectNode result = Json.newObject();
@@ -599,7 +589,7 @@ public class Utilisateurs extends Controller {
                 return internalServerError(result);
             }
 
-            models.Token token = tokenResult;
+            models.Token token = (models.Token) tokenResult;
 
             ObjectNode node = Json.newObject();
             node.put("status", 201)

@@ -6,6 +6,10 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.mongodb.*;
+import mongo.Collection;
+import mongo.Document;
+import mongo.Error;
+import mongo.QueryResult;
 import net.vz.mongodb.jackson.DBCursor;
 import net.vz.mongodb.jackson.JacksonDBCollection;
 import org.bson.types.ObjectId;
@@ -17,6 +21,8 @@ import java.util.List;
 
 @JsonIgnoreProperties({"type", "created_at", "updated_at", "deleted_at", "created_by", "updated_by", "deleted_by"})
 public class Token extends Document {
+    public static final String collectionName = "tokens";
+
     public enum Type {
         AUTHENTICATION,
         PASSWORD_RESET,
@@ -96,6 +102,21 @@ public class Token extends Document {
         this.key = key;
         this.createdAt = createdAt;
         this.expiresAt = expiresAt;
+    }
+
+    @Override
+    public boolean isError() {
+        return false;
+    }
+
+    @Override
+    public String getCollectionName() {
+        return "tokens";
+    }
+
+    @Override
+    public String getDocumentName() {
+        return "token";
     }
 
     @Override
@@ -227,77 +248,30 @@ public class Token extends Document {
     }
 
 
-    public static List<Token> findAll() {
-        return Token.collection.find().toArray();
-    }
-
-    public static List<Token> listByUserId(String uId) {
+    public static QueryResult listByUserId(String uId) {
         ArrayList<Token> tokens = new ArrayList<>();
 
         BasicDBObject query = new BasicDBObject();
         query.put("user_id", uId);
-        DBCursor cursor = collection.find(query);
-        while(cursor.hasNext()) {
-            Token token = (Token)cursor.next();
-            if(token.userId.equals(uId)){
-                tokens.add(token);
-            }
-        }
-
-        return tokens;
+        return Collection.findAll(collectionName, query, Token::fromBson);
     }
 
-
-    public static Token findById(String id){
-        Token token = Token.collection.findOneById(id);
-        return token;
-    }
-
-    public static List<Token> findByKey(String key){
+    public static QueryResult findByKey(String key){
         final  List<Token> results = new ArrayList<>();
 
         BasicDBObject query = new BasicDBObject();
         query.put("key", key);
-        DBCursor cursor = collection.find(query);
-        while(cursor.hasNext()) {
-            results.add((Token) cursor.next());
-        }
-        return results;
+        return Collection.findAll(collectionName, query, Token::fromBson);
     }
 
-    public static boolean remove(Token token){
-        BasicDBObject query = new BasicDBObject();
-        query.put("_id", new org.bson.types.ObjectId(token.getId()) );
-        try {
-            Token.collection.remove(query);
-            return true;
-        }catch (Exception e){
-            return false;
-        }
-    }
-
-    public static void save(Token token){
-        Token.collection.save(token);
-    }
-
-    public static void update(Token token){
-        BasicDBObject query = new BasicDBObject();
-        query.put("_id", new org.bson.types.ObjectId(token.getId()) );
-        collection.update(query, token.toBson());
-    }
 
     public static Token findByOrigin(String origin) {
 
         BasicDBObject query = new BasicDBObject();
         query.put("origin", origin);
-        DBCursor cursor = collection.find(query);
-        try {
-            while(cursor.hasNext()) {
-                Token token = (Token)cursor.next();
-                return token;
-            }
-        }catch (Exception e){
-            return null;
+        QueryResult result = Collection.findAll(collectionName, query, Token::fromBson);
+        if(!result.isError()){
+            return (Token)result;
         }
         return null;
     }
@@ -306,14 +280,9 @@ public class Token extends Document {
         BasicDBObject query = new BasicDBObject();
         query.put("origin", origin);
         query.put("user_id", userId);
-        DBCursor cursor = collection.find(query);
-        try {
-            while(cursor.hasNext()) {
-                Token token = (Token)cursor.next();
-                return token;
-            }
-        }catch (Exception e){
-            return null;
+        QueryResult result = Collection.findAll(collectionName, query, Token::fromBson);
+        if(!result.isError()){
+            return (Token)result;
         }
         return null;
     }
@@ -322,14 +291,9 @@ public class Token extends Document {
         BasicDBObject query = new BasicDBObject();
         query.put("user_agent", userAgent);
         query.put("user_id", userId);
-        DBCursor cursor = collection.find(query);
-        try {
-            while(cursor.hasNext()) {
-                Token token = (Token)cursor.next();
-                return token;
-            }
-        }catch (Exception e){
-            return null;
+        QueryResult result = Collection.findAll(collectionName, query, Token::fromBson);
+        if(!result.isError()){
+            return (Token)result;
         }
         return null;
     }
@@ -352,26 +316,48 @@ public class Token extends Document {
     }
 
     private static boolean remove(DBObject query) {
-
         try  {
-            DBCursor cursor = collection.find(query);
-            if (!cursor.hasNext()) {
-                return true;
-            }
+            QueryResult result = Collection.find(collectionName, query, Token::fromBson, "not found");
+            if(!result.isError()){
 
-            Token document = (Token) cursor.next();
-
-            try {
-                collection.remove(document, WriteConcern.ACKNOWLEDGED);
+                result = Collection.delete(collectionName, (Token) result);
                 return true;
 
-            } catch (MongoException e) {
-                return false;
             }
-
+            return false;
         } catch (MongoTimeoutException e) {
             return false;
 
         }
+    }
+
+    public static QueryResult findAll() {
+        return Collection.findAll(collectionName, new BasicDBObject(), Token::fromBson);
+    }
+
+    public static QueryResult findById(String id){
+
+        return Collection.findById(collectionName, id, Token::fromBson, "Token not found");
+
+    }
+
+    public static QueryResult findByName(String name){
+
+        BasicDBObject query = new BasicDBObject();
+        query.put("name", name);
+        return Collection.findAll(collectionName, query, Token::fromBson);
+    }
+
+    public static QueryResult remove(Token token){
+        return Collection.delete(collectionName, token);
+    }
+
+    public static QueryResult save(Token token){
+        return Collection.insert(collectionName, token, e-> new Error(Error.DUPLICATE_KEY, "A Token with the same name already existe"));
+
+    }
+
+    public static QueryResult update(Token token){
+        return Collection.update(collectionName, token, e-> new Error(Error.DUPLICATE_KEY, "Token with the same name already exist"));
     }
 }

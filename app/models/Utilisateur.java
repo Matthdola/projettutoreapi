@@ -5,15 +5,22 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonValue;
 import com.mongodb.BasicDBObject;
 import com.mongodb.DBObject;
+import mongo.Collection;
+import mongo.Document;
+import mongo.Error;
+import mongo.QueryResult;
 import net.vz.mongodb.jackson.DBCursor;
 import net.vz.mongodb.jackson.JacksonDBCollection;
 import org.bson.types.ObjectId;
+import org.joda.time.DateTime;
 import play.modules.mongodb.jackson.MongoDB;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class Utilisateur extends Document {
+    public static final String collectionName = "utilisateurs";
+
     public enum Type {
         PATIENT("patient"),
         ASSUREUR("assuseur"),
@@ -117,8 +124,6 @@ public class Utilisateur extends Document {
     @JsonProperty(TYPE)
     protected Type type;
 
-    public static JacksonDBCollection<Utilisateur, String> collection = MongoDB.getCollection("utilisateurs", Utilisateur.class, String.class);
-
 
     public Utilisateur() {
 
@@ -132,6 +137,21 @@ public class Utilisateur extends Document {
     }
 
     @Override
+    public boolean isError() {
+        return false;
+    }
+
+    @Override
+    public String getCollectionName() {
+        return "utilisateurs";
+    }
+
+    @Override
+    public String getDocumentName() {
+        return "utilisateur";
+    }
+
+    @Override
     public DBObject toBson() {
         BasicDBObject object = new BasicDBObject();
 
@@ -141,7 +161,6 @@ public class Utilisateur extends Document {
 
         object.append(EMAIL, email)
                 .append(NAME, name)
-                .append(TYPE, type.toString())
                 .append(NOM, nom)
                 .append(PRENOM, prenom)
                 .append(PROFESSION, profession)
@@ -157,6 +176,55 @@ public class Utilisateur extends Document {
                 .append(DELETED_BY, getDeletedBy());
 
         return object;
+    }
+
+    public static Utilisateur fromBson(DBObject bson){
+        Utilisateur utilisateur = new Utilisateur();
+        utilisateur.setId(bson.get(Document.ID).toString());
+
+        Object email = bson.get(Utilisateur.EMAIL);
+        if (email != null) {
+            utilisateur.setEmail(email.toString());
+        }
+
+        Object username = bson.get(Utilisateur.NAME);
+        if (username != null) {
+            utilisateur.setName(username.toString());
+        }
+
+        Object nom = bson.get(Utilisateur.NOM);
+        if (nom != null) {
+            utilisateur.setNom(nom.toString());
+        }
+        Object prenom = bson.get(Utilisateur.PRENOM);
+        if (prenom != null) {
+            utilisateur.setPrenom(prenom.toString());
+        }
+        Object profession = bson.get(Utilisateur.PROFESSION);
+        if (profession != null) {
+            utilisateur.setProfession(profession.toString());
+        }
+        Object telephone = bson.get(Utilisateur.TELEPHONE);
+        if (telephone != null) {
+            utilisateur.setTelephone(telephone.toString());
+        }
+        Object cellulaire = bson.get(Utilisateur.CELLULAIRE);
+        if (cellulaire != null) {
+            utilisateur.setCellulaire(cellulaire.toString());
+        }
+        Object type = bson.get(Utilisateur.TYPE);
+        if (type != null) {
+            utilisateur.setType(Type.fromValue(type.toString()));
+        }
+
+        Object createdAt = bson.get(Utilisateur.CREATED_AT);
+        Object updateDate = bson.get(Utilisateur.UPDATED_AT);
+        Object deleteAt = bson.get(Utilisateur.DELETED_AT);
+
+        utilisateur.setCreatedAt(createdAt == null ? null : DateTime.parse(createdAt.toString()));
+        utilisateur.setUpdatedAt(updateDate == null ? null : DateTime.parse(updateDate.toString()));
+        utilisateur.setDeletedAt(deleteAt == null ? null : DateTime.parse(deleteAt.toString()));
+        return utilisateur;
     }
 
     public String getPassword() {
@@ -275,115 +343,70 @@ public class Utilisateur extends Document {
         this.type = type;
     }
 
-    public static Utilisateur findByNameAndPassword(String name, String password){
+    public static QueryResult findByNameAndPassword(String name, String password){
         BasicDBObject query = new BasicDBObject();
         query.put("name", name);
         query.put("password", password);
-        DBCursor cursor = collection.find(query);
-        while(cursor.hasNext()) {
-            return (Utilisateur) cursor.next();
-        }
-        return null;
+
+        return Collection.find(collectionName, query, Utilisateur::fromBson, "User with the name " + name + " and " + password +" not found");
     }
 
-    public static List<Utilisateur> findAll() {
-        return Utilisateur.collection.find().toArray();
-    }
 
-    public static List<Utilisateur> findAllPatient() {
-        ArrayList<Utilisateur> patients = new ArrayList<>();
+    public static QueryResult findAllPatient() {
         BasicDBObject query = new BasicDBObject();
         query.put("type", "PATIENT" );
-        DBCursor cursor = collection.find(query);
+        return Collection.findAll(collectionName, query, Patient::fromBson);
 
-        while(cursor.hasNext()) {
-            Utilisateur patient = (Utilisateur) cursor.next();
-            patients.add(patient);
-
-        }
-
-        return patients;
     }
 
-    public static List<Utilisateur> findAllMedecin() {
-        ArrayList<Utilisateur> medecins = new ArrayList<>();
+    public static QueryResult findAllMedecin() {
         BasicDBObject query = new BasicDBObject();
         query.put("type", "MEDECIN" );
-        DBCursor cursor = collection.find(query);
-        if(cursor != null) {
-           // while (cursor.hasNext()) {
-                Utilisateur medecin = (Utilisateur) cursor.next();
-                medecins.add(medecin);
 
-            //}
-        }
-        return medecins;
-
+        QueryResult result = Collection.findAll(collectionName, query, Medecin::fromBson);
+        return result;
     }
 
-    public static List<Assureur> findAllAssureur() {
-        ArrayList<Assureur> assureurs = new ArrayList<>();
+    public static QueryResult findAllAssureur() {
         BasicDBObject query = new BasicDBObject();
-        query.put("type", "assureur" );
-        DBCursor cursor = collection.find(query);
-        while(cursor.hasNext()) {
-            Assureur assureur = (Assureur) cursor.next();
-            assureurs.add(assureur);
+        query.put("type", "ASSUREUR" );
 
-        }
-
-        return assureurs;
+        QueryResult result = Collection.findAll(collectionName, query, Medecin::fromBson);
+        return result;
     }
 
-    public static Utilisateur findById(String id){
-        Utilisateur user = Utilisateur.collection.findOneById(id);
-        return user;
+    public static QueryResult findById(String id){
+
+        return Collection.findById(collectionName, id, Utilisateur::fromBson, "User with the id " + id + "not found");
     }
 
-    public static Utilisateur findByName(String name){
+    public static QueryResult findByName(String name){
         BasicDBObject query = new BasicDBObject();
         query.put("name", name);
-        DBCursor cursor = collection.find(query);
-        while(cursor.hasNext()) {
-            return (Utilisateur) cursor.next();
-        }
-        return null;
+        return Collection.find(collectionName, query, Utilisateur::fromBson, "User with the name " + name + "not found");
     }
 
-    public static Utilisateur findByEmail(String email){
+    public static QueryResult findByEmail(String email){
         BasicDBObject query = new BasicDBObject();
-        query.put("email", email);
-        try {
-            DBCursor cursor = collection.find(query);
-            if(cursor.count() > 0) {
-                while (cursor.hasNext()) {
-                    return (Utilisateur) cursor.next();
-                }
-            }
-        }catch (Exception e){
-            return null;
-        }
-        return null;
+        query.put("email", email );
+        return Collection.find(collectionName, query, Utilisateur::fromBson, "User with the email " + email + "not found");
     }
 
-    public static boolean remove(Utilisateur user){
-        BasicDBObject query = new BasicDBObject();
-        query.put("_id", new org.bson.types.ObjectId(user.getId()) );
-        try {
-            Utilisateur.collection.remove(query);
-            return true;
-        }catch (Exception e){
-            return false;
-        }
+    public static QueryResult findAll() {
+        return Collection.findAll(collectionName, new BasicDBObject(), Utilisateur::fromBson);
     }
 
-    public static void save(Utilisateur user){
-        Utilisateur.collection.insert(user);
+
+    public static QueryResult remove(Utilisateur utilisateur){
+        return Collection.delete(collectionName, utilisateur);
     }
 
-    public static void update(Utilisateur user){
-        BasicDBObject query = new BasicDBObject();
-        query.put("_id", new org.bson.types.ObjectId(user.getId()) );
-        collection.update(query, user.toBson());
+    public static QueryResult save(Utilisateur utilisateur){
+        return Collection.insert(collectionName, utilisateur, e-> new Error(Error.DUPLICATE_KEY, "An user with the same name already existe"));
+
+    }
+
+    public static QueryResult update(Utilisateur utilisateur){
+        return Collection.update(collectionName, utilisateur, e-> new Error(Error.DUPLICATE_KEY, "user with the same name already exist"));
     }
 }

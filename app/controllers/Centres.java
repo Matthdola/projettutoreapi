@@ -3,6 +3,8 @@ package controllers;
 import action.Cors;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import mongo.PaginatedQueryResult;
+import mongo.QueryResult;
 import play.libs.Json;
 import play.mvc.BodyParser;
 import play.mvc.Controller;
@@ -15,11 +17,14 @@ import java.util.List;
 public class Centres extends Controller {
   
     public static Result list(){
-        List<models.Centre> centres = models.Centre.findAll();
+        QueryResult queryResult  = models.Centre.findAll();
+        if(queryResult.isError()){
+            return notFound(String.format("Error when getting center."));
+        }
         ObjectNode result = Json.newObject();
         result.put("uri", "/v1/centres/");
         result.put("status", 200);
-        result.put("centres", Json.toJson(centres));
+        result.put("centres", Json.toJson(((PaginatedQueryResult)queryResult).getResults()));
         return ok(result);
     }
 
@@ -30,8 +35,8 @@ public class Centres extends Controller {
         if(id.isEmpty()){
             return notFound(String.format("Centre %s does not exist.", id));
         }
-        models.Centre centre = models.Centre.findById(id);
-        if(centre == null){
+        QueryResult centre = models.Centre.findById(id);
+        if(centre.isError()){
             return notFound(String.format("Centre %s does not exist.", id));
         }
         return  ok(Json.toJson(centre));
@@ -89,11 +94,11 @@ public class Centres extends Controller {
         if (id.isEmpty()){
             return notFound(String.format("Centre %s does not exist.", id));
         }
-        models.Centre centre = models.Centre.findById(id);
-        if(centre == null){
+        QueryResult centre = models.Centre.findById(id);
+        if(centre.isError()){
             return notFound(String.format("Centre %s does not exist.", id));
         }
-        models.Centre.remove(centre);
+        models.Centre.remove((Centre)centre);
         ObjectNode result = Json.newObject();
         result.put("uri", "/v1/centres/"+id);
         result.put("status", 200);

@@ -1,6 +1,7 @@
 package models;
 
 import com.mongodb.DBObject;
+import mongo.Document;
 
 import java.time.LocalTime;
 import java.util.ArrayList;
@@ -18,6 +19,21 @@ public class JoursConsultation extends Document {
 
     public void setJours(ArrayList<JourConsul> jours) {
         this.jours = jours;
+    }
+
+    @Override
+    public boolean isError() {
+        return false;
+    }
+
+    @Override
+    public String getCollectionName() {
+        return "joursconsultations";
+    }
+
+    @Override
+    public String getDocumentName() {
+        return "jourconsultation";
     }
 
     @Override

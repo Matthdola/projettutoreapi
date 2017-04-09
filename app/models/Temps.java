@@ -1,6 +1,7 @@
 package models;
 
 import com.mongodb.DBObject;
+import mongo.Document;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -54,5 +55,20 @@ public class Temps extends Document {
             return 0;
         }
         return 1;
+    }
+
+    @Override
+    public boolean isError() {
+        return false;
+    }
+
+    @Override
+    public String getCollectionName() {
+        return "temps";
+    }
+
+    @Override
+    public String getDocumentName() {
+        return "temps";
     }
 }

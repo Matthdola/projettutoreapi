@@ -3,6 +3,8 @@ import action.Cors;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import models.Medecin;
+import mongo.PaginatedQueryResult;
+import mongo.QueryResult;
 import org.joda.time.DateTime;
 import play.libs.Json;
 import play.mvc.BodyParser;
@@ -15,29 +17,39 @@ import java.util.List;
 public class Medecins extends Controller {
 
     public static Result list(){
-        List<models.Utilisateur> medecins = models.Medecin.findAllMedecin();
+        QueryResult queryResult = models.Medecin.findAllMedecin();
+        if (queryResult.isError()){
+            return notFound(String.format("Medecin does not exist."));
+        }
+
         ObjectNode result = Json.newObject();
         result.put("uri", "/v1/medecins/");
         result.put("status", 200);
-        result.put("medecin", Json.toJson(medecins));
+        result.put("medecins", Json.toJson(((PaginatedQueryResult)queryResult).getResults()));
         return ok(result);
     }
 
     public static Result listByCentre(String centre){
-        List<models.Medecin> medecins = models.Medecin.listByCentre(centre);
+        QueryResult queryResult = models.Medecin.listByCentre(centre);
+        if (queryResult.isError()){
+            return notFound(String.format("Medecin does not exist with the centre " + centre));
+        }
         ObjectNode result = Json.newObject();
         result.put("uri", "/v1/medecins/");
         result.put("status", 200);
-        result.put("medecin", Json.toJson(medecins));
+        result.put("medecin", Json.toJson(((PaginatedQueryResult)queryResult).getResults()));
         return ok(result);
     }
 
     public static Result listBySpecialite(String specialite){
-        List<models.Medecin> medecins = models.Medecin.listBySpecialite(specialite);
+        QueryResult queryResult = models.Medecin.listBySpecialite(specialite);
+        if (queryResult.isError()){
+            return notFound(String.format("Medecin does not exist with the specialite " + specialite));
+        }
         ObjectNode result = Json.newObject();
         result.put("uri", "/v1/medecins/");
         result.put("status", 200);
-        result.put("medecin", Json.toJson(medecins));
+        result.put("medecin", Json.toJson(((PaginatedQueryResult)queryResult).getResults()));
         return ok(result);
     }
 

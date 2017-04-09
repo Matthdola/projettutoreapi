@@ -5,22 +5,28 @@ import action.Cors;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import models.*;
+import mongo.PaginatedQueryResult;
+import mongo.QueryResult;
 import play.libs.Json;
 import play.mvc.BodyParser;
 import play.mvc.Controller;
 import play.mvc.Result;
 
+import javax.swing.*;
 import java.util.List;
 
 @Cors
 public class Rendez_vous extends Controller {
 
     public static Result list(){
-        List<models.RendezVous> rendezVous = models.RendezVous.findAll();
+        QueryResult rendezVous = models.RendezVous.findAll();
+        if(rendezVous.isError()){
+            return notFound(String.format("Rendez-vous does not exist."));
+        }
         ObjectNode result = Json.newObject();
         result.put("uri", "/v1/rendez_vous/");
         result.put("status", 200);
-        result.put("rendez_vous", Json.toJson(rendezVous));
+        result.put("rendez_vous", Json.toJson(((PaginatedQueryResult)rendezVous).getResults()));
         return ok(result);
     }
 
@@ -31,8 +37,8 @@ public class Rendez_vous extends Controller {
         if(id.isEmpty()){
             return notFound(String.format("Rendez-vous %s does not exist.", id));
         }
-        models.RendezVous rendezVous = models.RendezVous.findById(id);
-        if(rendezVous == null){
+        QueryResult rendezVous = models.RendezVous.findById(id);
+        if(rendezVous.isError()){
             return notFound(String.format("Rendez-vous %s does not exist.", id));
         }
         ObjectNode result = Json.newObject();
@@ -94,11 +100,11 @@ public class Rendez_vous extends Controller {
         if (id.isEmpty()){
             return notFound(String.format("Patients %s does not exist.", id));
         }
-        models.RendezVous rendezVous = models.RendezVous.findById(id);
-        if(rendezVous == null){
+        QueryResult rendezVous = models.RendezVous.findById(id);
+        if(rendezVous.isError()){
             return notFound(String.format("Patients %s does not exist.", id));
         }
-        models.RendezVous.remove(rendezVous);
+        models.RendezVous.remove((RendezVous)rendezVous);
         ObjectNode result = Json.newObject();
         result.put("uri", "/v1/rendez_vous/"+id);
         result.put("status", 200);

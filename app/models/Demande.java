@@ -5,6 +5,10 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.mongodb.BasicDBObject;
 import com.mongodb.DBObject;
+import mongo.Collection;
+import mongo.Document;
+import mongo.Error;
+import mongo.QueryResult;
 import net.vz.mongodb.jackson.DBCursor;
 import net.vz.mongodb.jackson.JacksonDBCollection;
 import org.bson.types.ObjectId;
@@ -17,8 +21,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Demande extends Document {
-    private String id;
-
+    public static final String collectionName = "demandes";
+    
     @JsonProperty("date_demande")
     @JsonSerialize(using = util.DateTimeSerializer.class)
     @JsonDeserialize(using = util.DateTimeDeserializer.class)
@@ -29,9 +33,7 @@ public class Demande extends Document {
 
     private String etat;
     private String motifs;
-
-    public static JacksonDBCollection<Demande, String> collection = MongoDB.getCollection("demandes", Demande.class, String.class);
-
+    
     public Demande(){
 
     }
@@ -40,6 +42,21 @@ public class Demande extends Document {
         this.dateDemande = DateTime.now();
         this.idPatient = idPatient;
         this.etat = etat;
+    }
+
+    @Override
+    public boolean isError() {
+        return false;
+    }
+
+    @Override
+    public String getCollectionName() {
+        return "demandes";
+    }
+
+    @Override
+    public String getDocumentName() {
+        return "demande";
     }
 
     @Override
@@ -95,76 +112,59 @@ public class Demande extends Document {
         this.motifs = motifs;
     }
 
-    public static List<Demande> findAll() {
-        return Demande.collection.find().toArray();
-    }
-
-    public static List<Demande> listByEtat(String etat) {
-        ArrayList<Demande> demandes = new ArrayList<>();
-
+    public static QueryResult listByEtat(String etat) {
         BasicDBObject query = new BasicDBObject();
         query.put("etat", etat);
-        DBCursor cursor = collection.find(query);
-        while(cursor.hasNext()) {
-            Demande demande = (Demande)cursor.next();
-            if(demande.etat.contains(etat)){
-                demandes.add(demande);
-            }
-        }
-
-        return demandes;
+        return Collection.findAll(collectionName, query, Demande::fromBson);
     }
 
-    public static List<Demande> listByIdPatient(String idPatient) {
+    public static QueryResult listByIdPatient(String idPatient) {
         ArrayList<Demande> demandes = new ArrayList<>();
         BasicDBObject query = new BasicDBObject();
         query.put("id_patient", idPatient);
-        DBCursor cursor = collection.find(query);
-        while(cursor.hasNext()) {
-            Demande demande = (Demande)cursor.next();
-            if(demande.getIdPatient().equals(idPatient)){
-                demandes.add(demande);
-            }
-        }
-
-        return demandes;
+        return Collection.findAll(collectionName, query, Demande::fromBson);
     }
 
-    public static Demande findById(String id){
-        Demande demande = Demande.collection.findOneById(id);
-        return demande;
-    }
-
-    public static List<Demande> listByDate(DateTime date){
-        final  List<Demande> demandes = new ArrayList<>();
-
+    public static QueryResult listByDate(DateTime date){
         BasicDBObject query = new BasicDBObject();
         query.put("dateDemande", date);
-        DBCursor cursor = collection.find(query);
-        while(cursor.hasNext()) {
-            demandes.add((Demande) cursor.next());
-        }
-        return demandes;
+        return Collection.findAll(collectionName, query, Demande::fromBson);
     }
 
-    public static boolean remove(Demande demande){
+    public static ActeMedical fromBson(DBObject bson){
+        ActeMedical acteMedical = new ActeMedical();
+
+        return acteMedical;
+    }
+
+
+    public static QueryResult findAll() {
+        return Collection.findAll(collectionName, new BasicDBObject(), Demande::fromBson);
+    }
+
+    public static QueryResult findById(String id){
+
+        return Collection.findById(collectionName, id, Demande::fromBson, "Demande not found");
+
+    }
+
+    public static QueryResult findByName(String name){
+
         BasicDBObject query = new BasicDBObject();
-        query.put("_id", new org.bson.types.ObjectId(demande.getId()) );
-        try {
-            Demande.collection.remove(query);
-            return true;
-        }catch (Exception e){
-            return false;
-        }
+        query.put("name", name);
+        return Collection.findAll(collectionName, query, Demande::fromBson);
     }
 
-    public static void save(Demande demande){
-        Demande.collection.save(demande);
+    public static QueryResult remove(Demande demande){
+        return Collection.delete(collectionName, demande);
     }
 
-    public static void update(Demande demande){
-        BasicDBObject query = new BasicDBObject();
-        query.put("_id", new org.bson.types.ObjectId(demande.getId()) );
-        collection.update(query, demande.toBson());
+    public static QueryResult save(Demande demande){
+        return Collection.insert(collectionName, demande, e-> new Error(Error.DUPLICATE_KEY, "A Demande with the same name already existe"));
+
+    }
+
+    public static QueryResult update(Demande demande){
+        return Collection.update(collectionName, demande, e-> new Error(Error.DUPLICATE_KEY, "Demande with the same name already exist"));
     }
 }

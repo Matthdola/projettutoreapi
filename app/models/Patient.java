@@ -1,24 +1,53 @@
 package models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.mongodb.BasicDBObject;
 import com.mongodb.DBObject;
+import mongo.Document;
 import net.vz.mongodb.jackson.JacksonDBCollection;
 import org.bson.types.ObjectId;
+import org.codehaus.jackson.annotate.JsonProperty;
 import play.modules.mongodb.jackson.MongoDB;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class Patient extends Utilisateur {
+
+    @JsonIgnore
+    public static final String CODE_ASSURANCE = "code_assurance";
+
+    @JsonIgnore
+    public static final String ID_ASSUREUR = "id_assureur";
+
+    @JsonIgnore
+    public static final String MALADIE_CHRONIQUES = "maladies_chroniques";
+
+    @JsonIgnore
+    public static final String ANTECEDENTS = "antecedents";
+
+    @JsonIgnore
+    public static final String ALLERGIES = "allergies";
+
+    @JsonProperty(CODE_ASSURANCE)
     private String codeAssurance;
+
+    @JsonProperty(ID_ASSUREUR)
     private String idAssureur;
+
+    @JsonProperty(MALADIE_CHRONIQUES)
     private List<String> maladieChroniques;
+
+    @JsonProperty(ANTECEDENTS)
     private List<String> antecedents;
+
+    @JsonProperty(ALLERGIES)
     private List<String> allergies;
 
-    public static JacksonDBCollection<Patient, String> collection = MongoDB.getCollection("utilisateurs", Patient.class, String.class);
-
     public Patient(){
-
+        maladieChroniques = new ArrayList<>();
+        antecedents = new ArrayList<>();
+        allergies = new ArrayList<>();
     }
 
     public String typeUtilisateur(){
@@ -47,7 +76,45 @@ public class Patient extends Utilisateur {
 
     @Override
     public DBObject toBson() {
-        return super.toBson();
+        BasicDBObject object = (BasicDBObject)super.toBson();
+
+        if (getId() != null && !getId().isEmpty()) {
+            object.append(Document.ID, new ObjectId(getId()));
+        }
+
+        object.append("code_assurance", codeAssurance)
+                .append("id_assureur", idAssureur)
+                .append("maladie_chroniques", maladieChroniques)
+                .append("antecedents", antecedents)
+                .append("allergies", allergies);
+
+        return object;
+    }
+
+    public static Patient fromBson(DBObject bson){
+        Patient patient = (Patient) Utilisateur.fromBson(bson);
+
+        Object codeAssurance = bson.get(Patient.CODE_ASSURANCE);
+        if (codeAssurance != null) {
+            //patient.setSpecialites(specialite);
+        }
+        Object idAssureur = bson.get(Patient.ID_ASSUREUR);
+        if (idAssureur != null) {
+            //patient.setCentrePrincipal(centrePrin.toString());
+        }
+        Object maladisChroniques = bson.get(Patient.MALADIE_CHRONIQUES);
+        if (maladisChroniques != null) {
+            //patient.setCentres(profession.toString());
+        }
+        Object antecedents = bson.get(Patient.ANTECEDENTS);
+        if (antecedents != null) {
+            //patient.setJoursConsultation(telephone.toString());
+        }
+        Object allergies = bson.get(Patient.ALLERGIES);
+        if (allergies != null) {
+            //patient.setJoursConsultation(telephone.toString());
+        }
+        return patient;
     }
 
     public String toString(){
@@ -78,47 +145,4 @@ public class Patient extends Utilisateur {
         this.allergies = allergies;
     }
 
-    /*
-    public static List<Patients> findAll() {
-        return Patients.collection.find().toArray();
-    }
-    */
-    public static Patient findById(String id){
-        Patient patient = Patient.collection.findOneById(id);
-        return patient;
-    }
-
-    /*
-    public static List<Patients> findByName(String name){
-        final  List<Patients> results = new ArrayList<>();
-
-        BasicDBObject query = new BasicDBObject();
-        query.put("name", name);
-        DBCursor cursor = collection.find(query);
-        while(cursor.hasNext()) {
-            results.add((Patients) cursor.next());
-        }
-        return results;
-    }
-    */
-    public static boolean remove(Patient patient){
-        BasicDBObject query = new BasicDBObject();
-        query.put("_id", new org.bson.types.ObjectId(patient.getId()) );
-        try {
-            Patient.collection.remove(query);
-            return true;
-        }catch (Exception e){
-            return false;
-        }
-    }
-
-    public static void save(Patient patient){
-        Patient.collection.save(patient);
-    }
-
-    public static void update(Patient patient){
-        BasicDBObject query = new BasicDBObject();
-        query.put("_id", new org.bson.types.ObjectId(patient.getId()) );
-        collection.update(query, patient.toBson());
-    }
 }

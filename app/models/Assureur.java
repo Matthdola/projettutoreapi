@@ -1,11 +1,24 @@
 package models;
 
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.mongodb.BasicDBObject;
 import com.mongodb.DBObject;
+import mongo.Collection;
+import mongo.Document;
+import mongo.QueryResult;
+import net.vz.mongodb.jackson.DBCursor;
+import net.vz.mongodb.jackson.JacksonDBCollection;
 import org.bson.types.ObjectId;
+import org.codehaus.jackson.annotate.JsonProperty;
+import play.modules.mongodb.jackson.MongoDB;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class Assureur extends Utilisateur {
+
+    @JsonProperty("code_assureur")
     private String codeAsseur;
 
     public Assureur(){
@@ -47,4 +60,22 @@ public class Assureur extends Utilisateur {
 
         return object;
     }
+
+
+    public static Assureur fromBson(DBObject bson){
+        Assureur assureur = (Assureur) Utilisateur.fromBson(bson);
+
+        return assureur;
+    }
+
+
+
+    public static QueryResult findAll() {
+        ArrayList<Utilisateur> assurs = new ArrayList<>();
+        BasicDBObject query = new BasicDBObject();
+        query.put("type", "ASSUREUR");
+
+        return Collection.find(collectionName, query, Assureur::fromBson, "");
+    }
+
 }

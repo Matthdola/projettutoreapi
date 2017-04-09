@@ -4,6 +4,8 @@ import action.Cors;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+import mongo.PaginatedQueryResult;
+import mongo.QueryResult;
 import org.joda.time.DateTime;
 import play.libs.Json;
 import play.mvc.BodyParser;
@@ -23,11 +25,11 @@ public class Specialites extends Controller {
         if (id.isEmpty()){
             return notFound(String.format("Specialite %s does not exist.", id));
         }
-        models.Specialite specialite = models.Specialite.findById(id);
-        if(specialite == null){
+        QueryResult specialite = models.Specialite.findById(id);
+        if(specialite.isError()){
             return notFound(String.format("Specialite %s does not exist.", id));
         }
-        models.Specialite.remove(specialite);
+        models.Specialite.remove((Specialite) specialite);
         ObjectNode result = Json.newObject();
         result.put("uri", "/v1/specialites/"+id);
         result.put("status", 200);
@@ -36,11 +38,14 @@ public class Specialites extends Controller {
     }
 
     public static Result list(){
-        List<Specialite> specialites = models.Specialite.findAll();
+        QueryResult queryResult = models.Specialite.findAll();
+        if (queryResult.isError()){
+            return notFound(String.format("Specialites does not exist."));
+        }
         ObjectNode result = Json.newObject();
         result.put("uri", "/v1/specialites/");
         result.put("status", 200);
-        result.put("specialite", Json.toJson(specialites));
+        result.put("specialite", Json.toJson(((PaginatedQueryResult)queryResult).getResults()));
         return ok(result);
     }
 
@@ -51,8 +56,8 @@ public class Specialites extends Controller {
         if(id.isEmpty()){
             return notFound(String.format("Specialite %s does not exist.", id));
         }
-        models.Specialite specialite = models.Specialite.findById(id);
-        if(specialite == null){
+        QueryResult specialite = models.Specialite.findById(id);
+        if(specialite.isError()){
             return notFound(String.format("Specialite %s does not exist.", id));
         }
         return  ok(Json.toJson(specialite));
@@ -70,7 +75,10 @@ public class Specialites extends Controller {
             }else {
                 models.Specialite specialite = Json.fromJson(json, models.Specialite.class);
                 specialite.setCreatedAt(DateTime.now());
-                models.Specialite.save(specialite);
+                QueryResult queryResult = models.Specialite.save(specialite);
+                if (queryResult.isError()){
+                    return notFound(String.format("Specialite does not exist."));
+                }
                 ObjectNode result = Json.newObject();
                 result.put("uri", "/v1/specialites/");
                 result.put("status", 202);

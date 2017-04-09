@@ -6,6 +6,7 @@ import play.Logger;
 import play.Play;
 import play.Plugin;
 
+import java.nio.charset.Charset;
 import java.util.List;
 
 public class MongoDB extends Plugin {
@@ -19,6 +20,8 @@ public class MongoDB extends Plugin {
     private String database;
     private String defaultDatabase;
     public String trashPrefix;
+    String username;
+    String password;
 
     public MongoDB(Application application) {
         this.application = application;
@@ -40,6 +43,8 @@ public class MongoDB extends Plugin {
         host = application.configuration().getString("mongodb.default.host");
         port = application.configuration().getInt("mongodb.default.port");
         database = defaultDatabase = application.configuration().getString("mongodb.default.db");
+        username = application.configuration().getString("mongodb.username");
+        password = application.configuration().getString("mongodb.password");
         trashPrefix = application.configuration().getString("mongodb.trashPrefix");
 
         try {
@@ -50,7 +55,7 @@ public class MongoDB extends Plugin {
             MongoClientOptions mco = builder.build();
             c = new MongoClient(host, port);
             MongoClient client = new MongoClient(host, mco);
-            
+
             bootstrapDatabase();
 
 
@@ -60,6 +65,13 @@ public class MongoDB extends Plugin {
     }
 
     public static void use(String database) {
+        char[] pass ={ 'a', 'b', 'c', '1', '2','3' };
+        try {
+            MongoClient client = new MongoClient("localhost", 27017);
+            client.getDB(database).authenticate("adminUser", pass);
+        } catch (Exception e){
+
+        }
         Play.application().plugin(MongoDB.class).setDatabase(database);
     }
 
@@ -70,6 +82,13 @@ public class MongoDB extends Plugin {
     }
 
     public static void setup(String database) {
+        char[] pass ={ 'a', 'b', 'c', '1', '2','3' };
+        try {
+            MongoClient client = new MongoClient("localhost", 27017);
+            client.getDB(database).authenticate("adminUser", pass);
+        } catch (Exception e){
+
+        }
         use(database);
 
         Play.application().plugin(MongoDB.class).bootstrapDatabase();

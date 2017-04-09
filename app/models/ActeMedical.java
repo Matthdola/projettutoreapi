@@ -3,21 +3,33 @@ package models;
 
 import com.mongodb.BasicDBObject;
 import com.mongodb.DBObject;
+import mongo.Collection;
+import mongo.Document;
+import mongo.Error;
+import mongo.QueryResult;
 import net.vz.mongodb.jackson.DBCursor;
 import net.vz.mongodb.jackson.JacksonDBCollection;
 import org.bson.types.ObjectId;
+import org.codehaus.jackson.annotate.JsonProperty;
 import play.modules.mongodb.jackson.MongoDB;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class ActeMedical extends Document {
-    private String nomActes;
-    private double montantAssure;
-    private double montantNonAssure;
-    private double montantEspatrie;
 
-    public static JacksonDBCollection<ActeMedical, String> collection = MongoDB.getCollection("actesmedicals", ActeMedical.class, String.class);
+    public static final String collectionName = "actes_medicales";
+    @JsonProperty("nom_actes")
+    private String nomActes;
+
+    @JsonProperty("montant_assure")
+    private double montantAssure;
+
+    @JsonProperty("montant_non_assure")
+    private double montantNonAssure;
+
+    @JsonProperty("montant_expatrie")
+    private double montantEspatrie;
 
 
     public ActeMedical(){
@@ -57,6 +69,21 @@ public class ActeMedical extends Document {
     }
 
     @Override
+    public boolean isError() {
+        return false;
+    }
+
+    @Override
+    public String getCollectionName() {
+        return "actesmedicals";
+    }
+
+    @Override
+    public String getDocumentName() {
+        return "actemedical";
+    }
+
+    @Override
     public DBObject toBson() {
         BasicDBObject object = new BasicDBObject();
 
@@ -79,46 +106,41 @@ public class ActeMedical extends Document {
 
     }
 
-    public static List<ActeMedical> findAll() {
-        return ActeMedical.collection.find().toArray();
-    }
+    public static ActeMedical fromBson(DBObject bson){
+        ActeMedical acteMedical = new ActeMedical();
 
-
-    public static ActeMedical findById(String id){
-        ActeMedical acteMedical = ActeMedical.collection.findOneById(id);
         return acteMedical;
     }
 
-    public static List<ActeMedical> findByName(String name){
+    public static QueryResult findAll() {
+        return Collection.findAll(collectionName, new BasicDBObject(), ActeMedical::fromBson);
+    }
+
+
+    public static QueryResult findById(String id){
+
+        return Collection.findById(collectionName, id, ActeMedical::fromBson, "Acte not found");
+
+    }
+
+    public static QueryResult findByName(String name){
         final  List<ActeMedical> results = new ArrayList<>();
 
         BasicDBObject query = new BasicDBObject();
         query.put("name", name);
-        DBCursor cursor = collection.find(query);
-        while(cursor.hasNext()) {
-            results.add((ActeMedical) cursor.next());
-        }
-        return results;
+        return Collection.findAll(collectionName, query, ActeMedical::fromBson);
     }
 
-    public static boolean remove(ActeMedical acteMedical){
-        BasicDBObject query = new BasicDBObject();
-        query.put("_id", new org.bson.types.ObjectId(acteMedical.getId()) );
-        try {
-            ActeMedical.collection.remove(query);
-            return true;
-        }catch (Exception e){
-            return false;
-        }
+    public static QueryResult remove(ActeMedical acteMedical){
+        return Collection.delete(collectionName, acteMedical);
     }
 
-    public static void save(ActeMedical acteMedical){
-        ActeMedical.collection.save(acteMedical);
+    public static QueryResult save(ActeMedical acteMedical){
+        return Collection.insert(collectionName, acteMedical, e-> new Error(Error.DUPLICATE_KEY, "An actes with the same name already existe"));
+
     }
 
-    public static void update(ActeMedical acteMedical){
-        BasicDBObject query = new BasicDBObject();
-        query.put("_id", new org.bson.types.ObjectId(acteMedical.getId()) );
-        collection.update(query, acteMedical.toBson());
+    public static QueryResult update(ActeMedical acteMedical){
+        return Collection.update(collectionName, acteMedical, e-> new Error(Error.DUPLICATE_KEY, "acte with the same name already exist"));
     }
 }

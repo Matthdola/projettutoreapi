@@ -2,6 +2,7 @@ package models;
 
 import com.mongodb.BasicDBObject;
 import com.mongodb.DBObject;
+import mongo.Document;
 import org.bson.types.ObjectId;
 
 public class Assurance extends Document {
@@ -41,6 +42,21 @@ public class Assurance extends Document {
 
     public void setTelephone(String telephone) {
         this.telephone = telephone;
+    }
+
+    @Override
+    public boolean isError() {
+        return false;
+    }
+
+    @Override
+    public String getCollectionName() {
+        return "assurances";
+    }
+
+    @Override
+    public String getDocumentName() {
+        return "assurance";
     }
 
     @Override

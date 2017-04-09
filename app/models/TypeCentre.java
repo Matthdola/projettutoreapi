@@ -1,10 +1,9 @@
 package models;
 
 import com.mongodb.DBObject;
+import mongo.Document;
 
-/**
- * Created by matth on 28/09/2016.
- */
+
 public class TypeCentre extends Document {
     private String nomTypeCentre;
 
@@ -22,6 +21,21 @@ public class TypeCentre extends Document {
 
     public void setNomTypeCentre(String nomTypeCentre) {
         this.nomTypeCentre = nomTypeCentre;
+    }
+
+    @Override
+    public boolean isError() {
+        return false;
+    }
+
+    @Override
+    public String getCollectionName() {
+        return "type_centres";
+    }
+
+    @Override
+    public String getDocumentName() {
+        return "type_centre";
     }
 
     @Override

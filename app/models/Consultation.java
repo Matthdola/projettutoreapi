@@ -2,6 +2,7 @@ package models;
 
 import com.mongodb.BasicDBObject;
 import com.mongodb.DBObject;
+import mongo.Document;
 import org.bson.types.ObjectId;
 
 import java.time.LocalDate;
@@ -49,6 +50,21 @@ public class Consultation extends Document {
 
     public void setActeMedicals(ArrayList<String> acteMedicals) {
         this.acteMedicals = acteMedicals;
+    }
+
+    @Override
+    public boolean isError() {
+        return false;
+    }
+
+    @Override
+    public String getCollectionName() {
+        return "consultations";
+    }
+
+    @Override
+    public String getDocumentName() {
+        return "consultation";
     }
 
     @Override
