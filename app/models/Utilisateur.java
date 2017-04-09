@@ -354,14 +354,14 @@ public class Utilisateur extends Document {
 
     public static QueryResult findAllPatient() {
         BasicDBObject query = new BasicDBObject();
-        query.put("type", "PATIENT" );
+        query.put("type", "patient" );
         return Collection.findAll(collectionName, query, Patient::fromBson);
 
     }
 
     public static QueryResult findAllMedecin() {
         BasicDBObject query = new BasicDBObject();
-        query.put("type", "MEDECIN" );
+        query.put("type", "medecin" );
 
         QueryResult result = Collection.findAll(collectionName, query, Medecin::fromBson);
         return result;
@@ -369,7 +369,7 @@ public class Utilisateur extends Document {
 
     public static QueryResult findAllAssureur() {
         BasicDBObject query = new BasicDBObject();
-        query.put("type", "ASSUREUR" );
+        query.put("type", "assureur" );
 
         QueryResult result = Collection.findAll(collectionName, query, Medecin::fromBson);
         return result;
